@@ -6,6 +6,7 @@ pip3 install -r requirments.txt
 python3 web-server.py
 ```
 view: host:8081/
+
 logs in ./logs/web-server.log
 
 ### phase 1: [DONE]

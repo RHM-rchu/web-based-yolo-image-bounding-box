@@ -1,0 +1,64 @@
+<%
+arrClasses = [
+'car',
+'sports car',
+'municipal car',
+'police car',
+'hatchback car',
+'crossover car',
+'suv car',
+'pickup truck',
+'van',
+'transport van',
+'service-utility van',
+'jeep',
+'school bus',
+'passenger bus',
+'ambulance',
+'firetruck',
+'RV',
+'box truck',
+'delivery truck',
+'service-utility truck',
+'tow truck',
+'dump truck',
+'tanker truck',
+'leer truck',
+'flatbed truck',
+'tractor trailer flatbed truck',
+'tractor trailer truck',
+'construction loader truck',
+'construction mixer truck',
+'tractor',
+'motorcylcle',
+'bike',
+'atv',
+'person',
+'police suv',
+]
+image_path = '/html/assets/training/car_at_20210227_085755.jpg'
+%>
+<div class="span-col-2">
+    <div class="" sylte="display=None;" id="message_display">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+    </div>
+</div>
+<div id="canvascontainer">
+    <label for="ice-cream-choice">Choose Class:</label>
+    <input type="text" name="selectClass" id="selectClass" placeholder="-------" list="checkName" onchange="this.blur();" required>
+    <datalist id="checkName">
+        % for theClass in arrClasses:
+        <option value="${theClass}">${theClass}</option>
+        % endfor
+    </datalist>
+    <br>
+        <canvas id="canvasarea" width="600px" height="300px"></canvas>
+<div>
+    <div id="coords">
+    </div>
+    <div id="coords_mc"></div>
+</div>
+<script type="text/javascript">
+image_path = '${image_path}'; //Load Image ;
+</script>
+<script src="html/assets/drawRectangles.js"></script>

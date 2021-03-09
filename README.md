@@ -12,14 +12,14 @@ Python Webserver: load images, draw bounding boxes for YOLO formated AI model tr
   - write YOLO txt complimentary file to image
 
 
-### phase 3: [Not started]
-  - dyamic load image
+### phase 3: [started]
+  - dyamic load image **DONE**
   - UI to cycle through images
 
 
-### phase 4: [Not started]
+### phase 4: [started]
   - progress bar
-  - jump to next model image (pickup from where we left off)
+  - jump to next model image (pickup from where we left off) **DONE**
 
 
 ### phase 5: [Not started]

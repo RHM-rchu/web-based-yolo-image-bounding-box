@@ -3,17 +3,17 @@ var canvas = document.getElementById('canvasarea'),
 //--- for crosshair 
 var context2 = context;
 var base_image = new Image();
-base_image.src = image_path; //Load Image ;
+// base_image.src = image_path; //Load Image ;
 var image_height = 0,
     image_width = 0,
     strokeWidth = 1,
     drawCount = 1
-    classKey = 0;
-base_image.onload = function() {
-    context.drawImage(base_image, 0, 0);
-    image_height = this.height
-    image_width = this.width
-}
+classKey = 0;
+// base_image.onload = function() {
+//     context.drawImage(base_image, 0, 0);
+//     image_height = this.height
+//     image_width = this.width
+// }
 
 function drawImage() {}
 
@@ -46,23 +46,18 @@ $("div").delegate(".rectanglelist", "click", function() {
     var sel_id = $(this).attr('id')
     drawRectangleOnCanvas.removeRect(sel_id);
 });
+// no rigthclick menu in canvas
+$('#canvasarea').contextmenu(function() {
+    return false;
+});
 
 
-
-
-function reOffset() {
-    var BB = canvas.getBoundingClientRect();
-    recOffsetX = BB.left;
-    recOffsetY = BB.top;
-}
-var recOffsetX, recOffsetY;
-reOffset();
-window.onscroll = function() {
-    reOffset();
-}
-window.onresize = function() {
-    reOffset();
-}
+// window.onscroll = function() {
+//     reOffset();
+// }
+// window.onresize = function() {
+//     reOffset();
+// }
 
 
 var showCrosshair = true
@@ -72,6 +67,22 @@ var rects = [];
 var newRect;
 var selectedClass;
 var drawRectangleOnCanvas = {
+
+    loadImage: function(img) {
+        base_image.src = img; //Load Image ;
+        base_image.onload = function() {
+            image_height = this.height
+            image_width = this.width
+            canvas.width = image_width;
+            canvas.height = image_height;
+            context.drawImage(base_image, 0, 0);
+        }
+        rects = []
+        isRecDown = false;
+        showCrosshair = true;
+        $(".canvasarea_name").text(img)
+        $('#coords').html('')
+    },
 
     removeCrosshair: function(e) {
         if (showCrosshair == true) {
@@ -83,12 +94,14 @@ var drawRectangleOnCanvas = {
         if (showCrosshair == true) {
             var x = e.pageX - canvas.offsetLeft;
             var y = e.pageY - canvas.offsetTop;
+            // var x = e.pageX - recOffsetX;
+            // var y = e.pageY - recOffsetY;
             drawRectangleOnCanvas.drawAll();
             context2.beginPath();
             context2.moveTo(0, y);
-            context2.lineTo(595, y);
+            context2.lineTo(image_width, y);
             context2.moveTo(x, 0);
-            context2.lineTo(x, 595);
+            context2.lineTo(x, image_height);
             context2.strokeStyle = "white"; //"rgb(255,255,255)";
             context2.stroke();
             context2.closePath();
@@ -107,14 +120,10 @@ var drawRectangleOnCanvas = {
         $('#message_display').hide();
     },
     handleMouseDown: function(e) {
-        // $.map( options, function( v, k ) {
-        //   return n > 0 ? n + 1 : null;
-        // });
-
         if (selectedClass == undefined) {
             return
         }
-        classKey = $.inArray( selectedClass, options );
+        classKey = $.inArray(selectedClass, options);
 
         // tell the browser we're handling this event
         e.preventDefault();
@@ -122,19 +131,20 @@ var drawRectangleOnCanvas = {
         btnCode = e.button;
 
         switch (btnCode) {
-            case 0:
+            case 0: //left click
 
-                startX = parseInt(e.clientX - recOffsetX);
-                startY = parseInt(e.clientY - recOffsetY);
+                startX = parseInt(e.clientX - canvas.offsetLeft);
+                startY = parseInt(e.clientY - canvas.offsetTop);
 
                 // Put your mousedown stuff here
                 isRecDown = true;
                 showCrosshair = false;
                 break;
 
-            case 1:
-                mouseX = parseInt(e.clientX - recOffsetX);
-                mouseY = parseInt(e.clientY - recOffsetY);
+            case 1: //middle click 
+
+                mouseX = parseInt(e.clientX - canvas.offsetLeft);
+                mouseY = parseInt(e.clientY - canvas.offsetTop);
                 $('#coords_mc').html(`<br>mouseX:${mouseX} mouseY:${mouseY}<br>`);
 
                 for (var i = 0; i < rects.length; i++) {
@@ -161,14 +171,16 @@ var drawRectangleOnCanvas = {
 
             case 2:
                 console.log('Right button clicked.');
+                isRecDown = false;
+                showCrosshair = true;
                 break;
 
             default:
                 console.log('Unexpected code: ' + btnCode);
         }
 
-        startX = parseInt(e.clientX - recOffsetX);
-        startY = parseInt(e.clientY - recOffsetY);
+        startX = parseInt(e.clientX - canvas.offsetLeft);
+        startY = parseInt(e.clientY - canvas.offsetTop);
 
         // Put your mousedown stuff here
         isRecDown = true;
@@ -187,19 +199,25 @@ var drawRectangleOnCanvas = {
             isRecDown = false;
             return
         }
+        // console.log(newRect)
+        if (newRect !== undefined && !("classKey" in newRect)) {
+            // if(newRect['classKey'] === undefined ) {
+            return
+        }
         // tell the browser we're handling this event
         e.preventDefault();
         e.stopPropagation();
         btnCode = e.button;
 
 
-        mouseX = parseInt(e.clientX - recOffsetX);
-        mouseY = parseInt(e.clientY - recOffsetY);
+        mouseX = parseInt(e.clientX - canvas.offsetLeft);
+        mouseY = parseInt(e.clientY - canvas.offsetTop);
 
         isRecDown = false;
         showCrosshair = true;
 
         rects.push(newRect);
+        newRect = {}
 
         console.log(`Add (${rects.length}) - ${selectedClass}`);
 
@@ -216,31 +234,31 @@ var drawRectangleOnCanvas = {
         //     <x> <y> <width> <height> - float values relative to width and height of image, it can be equal from (0.0 to 1.0]
         //     for example: <x> = <absolute_x> / <image_width> or <height> = <absolute_height> / <image_height>
         //     !!!atention: <x> <y> - are center of rectangle (are not top-left corner)
-        if(x2 > x1) {
-            xmin=x1
-            xmax=x2
+        if (x2 > x1) {
+            xmin = x1
+            xmax = x2
         } else {
-            xmin=x2
-            xmax=x1
+            xmin = x2
+            xmax = x1
         }
-        if(y1 > y2) {
-            ymin=y2
-            ymax=y1
+        if (y1 > y2) {
+            ymin = y2
+            ymax = y1
         } else {
-            ymin=y1
-            ymax=y2
+            ymin = y1
+            ymax = y2
         }
-        dw = 1./image_width
-        dh = 1./image_height
-        x1 = (xmin + xmax)/2.0
-        y1 = (ymin + ymax)/2.0
+        dw = 1. / image_width
+        dh = 1. / image_height
+        x1 = (xmin + xmax) / 2.0
+        y1 = (ymin + ymax) / 2.0
         w1 = xmax - xmin
         h1 = ymax - ymin
         var obj = {
-            x1: (x1*dw).toFixed(6),
-            y1: (y1*dh).toFixed(6),
-            w1: (w1*dw).toFixed(6),
-            h1: (h1*dh).toFixed(6)
+            x1: (x1 * dw).toFixed(6),
+            y1: (y1 * dh).toFixed(6),
+            w1: (w1 * dw).toFixed(6),
+            h1: (h1 * dh).toFixed(6)
         };
         return obj
     },
@@ -250,7 +268,7 @@ var drawRectangleOnCanvas = {
         dh = image_height
         l = Math.round((x1 - x2 / 2) * dw)
         t = Math.round((y1 - y2 / 2) * dh)
-        r = Math.round((parseFloat(x1) + parseFloat(x2) / 2)  * dw)
+        r = Math.round((parseFloat(x1) + parseFloat(x2) / 2) * dw)
         b = Math.round((parseFloat(y1) + parseFloat(y2) / 2) * dh)
 
         if (l < 0) {
@@ -278,8 +296,11 @@ var drawRectangleOnCanvas = {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(base_image, 0, 0);
         context.lineWidth = strokeWidth;
+        // if( rects.length < 1) {
+        //     return 
+        // }
 
-        $('#coords').html('<OL><DT>Clear</DT>')
+        $('#coords').html('<OL start="0">Click the element below to delete')
         for (var i = 0; i < rects.length; i++) {
             if (rects[i] == undefined) {
                 continue;
@@ -308,14 +329,12 @@ var drawRectangleOnCanvas = {
             context.fillText(`(${i}) ${r.selectedClass}`, r.left + 5, r.top + 15);
 
             yoloCoors = drawRectangleOnCanvas.yoloCoordValuesConverter(r.left, r.top, r.right, r.bottom)
-            yoloCoorsr = drawRectangleOnCanvas.yoloCoordValuesReverter(yoloCoors.x1, yoloCoors.y1, yoloCoors.w1, yoloCoors.h1)
-            console.log(yoloCoorsr)
+            // yoloCoorsr = drawRectangleOnCanvas.yoloCoordValuesReverter(yoloCoors.x1, yoloCoors.y1, yoloCoors.w1, yoloCoors.h1)
+            // console.log(yoloCoorsr)
 
             $('#coords OL').append(
-                `<DD class="rectanglelist" id="${i}">(${i}) ${r.selectedClass} - ${r.left},${r.top} to ${r.right},${r.bottom}`
-            );
-            $('#coords OL').append(
-                `<br>(${i}) ${r.classKey} ${yoloCoors.x1} ${yoloCoors.y1} ${yoloCoors.w1} ${yoloCoors.h1}</DD>`
+                `<LI class="rectanglelist" id="${i}">${r.selectedClass} - ${r.left},${r.top} to ${r.right},${r.bottom}` +
+                `<br>${r.classKey} ${yoloCoors.x1} ${yoloCoors.y1} ${yoloCoors.w1} ${yoloCoors.h1}</LI>`
             );
 
         }
@@ -328,12 +347,13 @@ var drawRectangleOnCanvas = {
         // if (btnCode != 0) {
         //     return
         // }
+
         // tell the browser we're handling this event
         e.preventDefault();
         e.stopPropagation();
 
-        mouseX = parseInt(e.clientX - recOffsetX);
-        mouseY = parseInt(e.clientY - recOffsetY);
+        mouseX = parseInt(e.clientX - canvas.offsetLeft);
+        mouseY = parseInt(e.clientY - canvas.offsetTop);
 
         // Put your mouseOut stuff here
         isRecDown = false;
@@ -351,8 +371,9 @@ var drawRectangleOnCanvas = {
         e.preventDefault();
         e.stopPropagation();
 
-        mouseX = parseInt(e.clientX - recOffsetX);
-        mouseY = parseInt(e.clientY - recOffsetY);
+        mouseX = parseInt(e.clientX - canvas.offsetLeft);
+        mouseY = parseInt(e.clientY - canvas.offsetTop);
+
         newRect = {
             left: Math.min(startX, mouseX),
             right: Math.max(startX, mouseX),
@@ -371,9 +392,6 @@ var drawRectangleOnCanvas = {
         h = mouseY - startY
         context.strokeRect(startX, startY, w, h);
 
-
-        // $('#coords').html('current: ' + startX + ', ' + startY + ' to ' + w + ',' + h + '<br>');
-        // $('#coords').append('selectedClass: ' + selectedClass + "<br>");
     }
 }
 
@@ -392,3 +410,19 @@ input.addEventListener('keypress', function(e) {
         }
     }
 });
+
+$(document).ready(function() {
+    $('#message_display').hide();
+    drawRectangleOnCanvas.loadImage(image_path)
+});
+$(".imagelist").on('click', function(event) {
+    new_image = $(this).text();
+    drawRectangleOnCanvas.loadImage(new_image)
+    $('.selected').removeClass('selected');
+    $(this).addClass('selected');
+});
+
+
+
+
+

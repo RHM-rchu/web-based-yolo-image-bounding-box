@@ -16,6 +16,7 @@ WEB_USERNAME = "user"
 WEB_PASSWORD = "pass"
 SERVERPORT = 8081
 HOSTNAME = ""
+TRAINING_PATH = "training"
 LOG_FILE_WEB = "logs/web-server.log"
 
 #--- log to file
@@ -27,22 +28,115 @@ if 'LOG_FILE_WEB' in locals():
     sys.stdin = logfile
     sys.stderr = logfile
 
+
+def revert_labels(img, label_path):
+    dh, dw, _ = img.shape
+
+    fl = open(label_path, 'r')
+    data = fl.readlines()
+    fl.close()
+
+    imgBoxes = []
+    for dt in data:
+        # Split string to float
+        _, x, y, w, h = map(float, dt.split(' '))
+
+        # Taken from https://github.com/pjreddie/darknet/blob/810d7f797bdb2f021dbe65d2524c2ff6b8ab5c8b/src/image.c#L283-L291
+        # via https://stackoverflow.com/questions/44544471/how-to-get-the-coordinates-of-the-bounding-box-in-yolo-object-detection#comment102178409_44592380
+        l = int((x - w / 2) * dw)
+        r = int((x + w / 2) * dw)
+        t = int((y - h / 2) * dh)
+        b = int((y + h / 2) * dh)
+        
+        if l < 0:
+            l = 0
+        if r > dw - 1:
+            r = dw - 1
+        if t < 0:
+            t = 0
+        if b > dh - 1:
+            b = dh - 1
+        imgBoxes.append(
+            {
+            'x1': l,
+            'y1': t,
+            'x2': r,
+            'y2': b,
+            }
+            )
+    return imgBoxes
+
+
+def convert_labels(img, x1, y1, x2, y2):
+    """
+    https://blog.goodaudience.com/part-1-preparing-data-before-training-yolo-v2-and-v3-deepfashion-dataset-3122cd7dd884
+    Definition: Parses label files to extract label and bounding box
+        coordinates.  Converts (x1, y1, x1, y2) KITTI format to
+        (x, y, width, height) normalized YOLO format.
+    """
+    def sorting(l1, l2):
+        if l1 > l2:
+            lmax, lmin = l1, l2
+            return lmax, lmin
+        else:
+            lmax, lmin = l2, l1
+            return lmax, lmin
+    size, _ = img.shape
+    xmax, xmin = sorting(x1, x2)
+    ymax, ymin = sorting(y1, y2)
+    dw = 1./size[1]
+    dh = 1./size[0]
+    x = (xmin + xmax)/2.0
+    y = (ymin + ymax)/2.0
+    w = xmax - xmin
+    h = ymax - ymin
+    x = x*dw
+    w = w*dw
+    y = y*dh
+    h = h*dh
+    return (x,y,w,h)
+
+
+
 def render_html_homepage(query_components=None):
     if 'date_begin' in query_components:
         date_begin = query_components["date_begin"][0]
-    image_path = 'html/assets/training/car_at_20210227_091324.jpg'
+    image_path = f'{TRAINING_PATH}/car_at_20210227_091324.jpg'
     upper_left_x = 10
     upper_left_y = 10
     width = 100
     height = 100
 
+    media_path = TRAINING_PATH
+
+    # jpg_files = [f for f in os.listdir(media_path) if f.endswith('.jpg')]
+    files = os.listdir(media_path)
+    files.sort()
+    imageLists = {}
+    for f in files:
+        if f.startswith( '.' ):
+            continue
+        # imageLists[]
+        reFile = re.search(r'(.*)\.([a-z]{3,4})', f)
+        print(f"{reFile[1]} ---- {reFile[2]}")
+        if reFile[1] not in imageLists:
+            imageLists[reFile[1]] = {
+                'image_path': '',
+                'txt_path': '',
+            }
+        if reFile[2] == "txt":
+            imageLists[reFile[1]]['txt_path'] = f'{media_path}/{reFile[0]}'
+        elif re.search("jpg|jpeg|png|gif|bmp|raw", reFile[2]):
+            imageLists[reFile[1]]['image_path'] = f'{media_path}/{reFile[0]}'
+
+
+    print(imageLists)
+
+
+
     htmllist = Template(filename='html/_home.html')
     html = htmllist.render(
-        image_path=image_path,
-        upper_left_x=upper_left_x,
-        upper_left_y=upper_left_y,
-        width=width,
-        height=height,
+        imageLists=imageLists,
         )
     return html
 
@@ -182,7 +276,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         # ignore request to favicon
         if self.path.endswith('favicon.ico'):
             return
-        elif send_asset or self.path.startswith('/html/assets/'):
+        elif send_asset or self.path.startswith('/html/assets/')or self.path.startswith(f'/{TRAINING_PATH}/'):
             with open(filename_rel, 'rb') as fh:
                 html = fh.read()
                 self.wfile.write(html)

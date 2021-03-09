@@ -36,10 +36,12 @@ arrClasses = [
 'person',
 'police suv',
 ]
-image_path = '/html/assets/training/car_at_20210227_085755.jpg'
+
+path_image = ""
+last_image = ""
 %>
 <div class="span-col-2">
-    <div class="" sylte="display=None;" id="message_display">
+    <div class="" id="message_display">
         <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
     </div>
 </div>
@@ -52,13 +54,38 @@ image_path = '/html/assets/training/car_at_20210227_085755.jpg'
         % endfor
     </datalist>
     <br>
-        <canvas id="canvasarea" width="600px" height="300px"></canvas>
+    <canvas id="canvasarea" widthx="600px" heightx="300px"></canvas>
+    <br>
+    <span class="canvasarea_name"></span>
+</div>
+<div>
+    <div id="image_list">
+        <ol>
+            % for img in imageLists:
+<%
+last_image = imageLists[img]['image_path']
+%>
+% if imageLists[img]['txt_path'] == "" and path_image == "":
+<%
+path_image = imageLists[img]['image_path']
+selected_image = ' selected'
+%>
+% else:
+<%
+selected_image = ''
+%>
+% endif
+            <li class="imagelist${selected_image}${' hasCoords'  if imageLists[img]['txt_path'] else ' needsCoords'}">${imageLists[img]['image_path']}</li>
+            % endfor
+        </ol>
+    </div>
+</div>
 <div>
     <div id="coords">
     </div>
     <div id="coords_mc"></div>
 </div>
 <script type="text/javascript">
-image_path = '${image_path}'; //Load Image ;
+image_path = '${path_image  if path_image else last_image}'; //Load Image ;
 </script>
 <script src="html/assets/drawRectangles.js"></script>

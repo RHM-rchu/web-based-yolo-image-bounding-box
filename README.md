@@ -1,6 +1,14 @@
 # web-based-yolo-image-bounding-box
 Python Webserver: load images, draw bounding boxes for YOLO formated AI model training 
 
+```
+pip3 install -r requirments.txt
+python3 web-server.py
+```
+view: host:8081/
+
+logs in ./logs/web-server.log
+
 ### phase 1: [DONE]
   - draw one or more bounding boxes
   - delete bounding boxes with center click or click list of boxes

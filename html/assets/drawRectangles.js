@@ -3,17 +3,12 @@ var canvas = document.getElementById('canvasarea'),
 //--- for crosshair 
 var context2 = context;
 var base_image = new Image();
-// base_image.src = image_path; //Load Image ;
 var image_height = 0,
     image_width = 0,
     strokeWidth = 1,
     drawCount = 1
 classKey = 0;
-// base_image.onload = function() {
-//     context.drawImage(base_image, 0, 0);
-//     image_height = this.height
-//     image_width = this.width
-// }
+
 
 function drawImage() {}
 
@@ -52,14 +47,6 @@ $('#canvasarea').contextmenu(function() {
 });
 
 
-// window.onscroll = function() {
-//     reOffset();
-// }
-// window.onresize = function() {
-//     reOffset();
-// }
-
-
 var showCrosshair = true
 var isRecDown = false;
 var startX, startY;
@@ -70,6 +57,10 @@ var drawRectangleOnCanvas = {
 
     loadImage: function(img) {
         base_image.src = img; //Load Image ;
+
+        drawRectangleOnCanvas.aj_coord_lookup(base_image.src)
+
+
         base_image.onload = function() {
             image_height = this.height
             image_width = this.width
@@ -266,8 +257,8 @@ var drawRectangleOnCanvas = {
         // https://stackoverflow.com/questions/64096953/how-to-convert-yolo-format-bounding-box-coordinates-into-opencv-format
         dw = image_width
         dh = image_height
-        l = Math.round((x1 - x2 / 2) * dw)
-        t = Math.round((y1 - y2 / 2) * dh)
+        l = Math.round((parseFloat(x1) - parseFloat(x2) / 2) * dw)
+        t = Math.round((parseFloat(y1) - parseFloat(y2) / 2) * dh)
         r = Math.round((parseFloat(x1) + parseFloat(x2) / 2) * dw)
         b = Math.round((parseFloat(y1) + parseFloat(y2) / 2) * dh)
 
@@ -392,7 +383,48 @@ var drawRectangleOnCanvas = {
         h = mouseY - startY
         context.strokeRect(startX, startY, w, h);
 
+    },
+
+
+    aj_coord_lookup: function(image) {
+
+        q_image = image.substring(0, image.length-4).split('/').reverse()[0]
+
+        $.ajax({
+            type: "GET",
+            url: "/get_coords_file",
+            data: { 
+                the_image: q_image,
+                // access_token: $("#access_token").val() 
+            },
+            success: function(result) {
+                console.log('ok');
+
+                j_results = JSON.parse(result)
+                rects = []
+                for (var i = 0; i < j_results.length; i++) {
+                    // tl_coords = drawRectangleOnCanvas.yoloCoordValuesReverter(a_result[1], a_result[2], a_result[3], a_result[4])
+                    newRect = {
+                        left: j_results[i]['x1'],
+                        right: j_results[i]['y1'],
+                        top: j_results[i]['x2'],
+                        bottom: j_results[i]['y2'],
+                        color: "orange",
+                        selectedClass: options[j_results[i]['cid']],
+                        classKey: j_results[i]['cid']
+                    }
+                    rects.push(newRect);
+
+                }
+                console.log(rects)
+                drawRectangleOnCanvas.drawAll();
+            },
+            error: function(result) {
+                console.log('error');
+            }
+        });
     }
+
 }
 
 // all this work just to be able to high enter to select first element in filter
@@ -420,6 +452,7 @@ $(".imagelist").on('click', function(event) {
     drawRectangleOnCanvas.loadImage(new_image)
     $('.selected').removeClass('selected');
     $(this).addClass('selected');
+
 });
 
 

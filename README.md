@@ -16,7 +16,7 @@ logs in ./logs/web-server.log
   - YOLO center decimal coord convertion, then back to standar x,y from top corner
 
 
-### phase 2: [Not started]
+### phase 2: [DONE]
   - write YOLO txt complimentary file to image
 
 

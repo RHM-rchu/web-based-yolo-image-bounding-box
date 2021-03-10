@@ -1,0 +1,35 @@
+car
+sports car
+municipal car
+police car
+hatchback car
+crossover car
+suv car
+pickup truck
+van
+transport van
+service-utility van
+jeep
+school bus
+passenger bus
+ambulance
+firetruck
+RV
+box truck
+delivery truck
+service-utility truck
+tow truck
+dump truck
+tanker truck
+leer truck
+flatbed truck
+tractor trailer flatbed truck
+tractor trailer truck
+construction loader truck
+construction mixer truck
+tractor
+motorcylcle
+bike
+atv
+person
+police suv

@@ -4,7 +4,7 @@ import json
 import base64
 import datetime, time, os, sys, json
 import re
-import cv2
+# import cv2
 
 import subprocess, socketserver
 
@@ -144,8 +144,8 @@ def get_coords_file(self, query_components={}):
                     }
                 )
 
-    cv2_coords2 = revert_labels(f"{TRAINING_PATH}/{base_name}.jpg", f"{TRAINING_PATH}/{base_name}.txt")
-    print(cv2_coords2)
+    # cv2_coords2 = revert_labels(f"{TRAINING_PATH}/{base_name}.jpg", f"{TRAINING_PATH}/{base_name}.txt")
+    # print(cv2_coords2)
     # print('--------------------cv2_coords')
     print(cv2_coords)
 
@@ -165,7 +165,7 @@ def render_html_homepage(query_components=None):
     files.sort()
     imageLists = {}
     for f in files:
-        if f.startswith( '.' ):
+        if f.startswith( '.' ) or f == 'classes.txt':
             continue
         reFile = re.search(r'(.*)\.([a-z]{3,4})', f)
         if reFile[1] not in imageLists:
@@ -179,13 +179,16 @@ def render_html_homepage(query_components=None):
             imageLists[reFile[1]]['image_path'] = f'{TRAINING_PATH}/{reFile[0]}'
 
 
-    if os.path.isfile(coord_file):
-        with open (coord_file, "r") as myfile:
-            coord_data = myfile.readlines()
+    if os.path.isfile(classesFile):
+        with open (classesFile, "r") as myfile:
+            class_data = myfile.readlines()
+            class_data = [s.rstrip() for s in class_data]
 
+    print(class_data)
     htmllist = Template(filename='html/_home.html')
     html = htmllist.render(
         imageLists=imageLists,
+        class_data=class_data,
         )
     return html
 

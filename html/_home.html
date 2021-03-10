@@ -1,42 +1,4 @@
 <%
-arrClasses = [
-'car',
-'sports car',
-'municipal car',
-'police car',
-'hatchback car',
-'crossover car',
-'suv car',
-'pickup truck',
-'van',
-'transport van',
-'service-utility van',
-'jeep',
-'school bus',
-'passenger bus',
-'ambulance',
-'firetruck',
-'RV',
-'box truck',
-'delivery truck',
-'service-utility truck',
-'tow truck',
-'dump truck',
-'tanker truck',
-'leer truck',
-'flatbed truck',
-'tractor trailer flatbed truck',
-'tractor trailer truck',
-'construction loader truck',
-'construction mixer truck',
-'tractor',
-'motorcylcle',
-'bike',
-'atv',
-'person',
-'police suv',
-]
-
 path_image = ""
 last_image = ""
 %>
@@ -47,7 +9,7 @@ last_image = ""
                 <label for="ice-cream-choice">Choose Class:</label>
                 <input type="text" name="selectClass" id="selectClass" placeholder="-------" list="checkName" onchange="this.blur();" required>
                 <datalist id="checkName">
-                    % for theClass in arrClasses:
+                    % for theClass in class_data:
                     <option value="${theClass}">${theClass}</option>
                     % endfor
                 </datalist>

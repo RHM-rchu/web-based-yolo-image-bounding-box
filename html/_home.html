@@ -40,52 +40,143 @@ arrClasses = [
 path_image = ""
 last_image = ""
 %>
-<div class="span-col-2">
-    <div class="" id="message_display">
-        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-    </div>
-</div>
-<div id="canvascontainer">
-    <label for="ice-cream-choice">Choose Class:</label>
-    <input type="text" name="selectClass" id="selectClass" placeholder="-------" list="checkName" onchange="this.blur();" required>
-    <datalist id="checkName">
-        % for theClass in arrClasses:
-        <option value="${theClass}">${theClass}</option>
-        % endfor
-    </datalist>
-    <br>
-    <canvas id="canvasarea" widthx="600px" heightx="300px"></canvas>
-    <br>
-    <span class="canvasarea_name"></span>
-</div>
-<div>
-    <div id="image_list">
-        <ol>
-            % for img in imageLists:
-<%
+<div class="wrapper">
+    <div class="middle">
+        <div class="container">
+            <main class="content">
+                <label for="ice-cream-choice">Choose Class:</label>
+                <input type="text" name="selectClass" id="selectClass" placeholder="-------" list="checkName" onchange="this.blur();" required>
+                <datalist id="checkName">
+                    % for theClass in arrClasses:
+                    <option value="${theClass}">${theClass}</option>
+                    % endfor
+                </datalist>
+                <br>
+                <canvas id="canvasarea" widthx="600px" heightx="300px"></canvas>
+                <br>
+                <span class="canvasarea_name"></span>
+                <!-- Canvas Info -->
+                <div>
+                    <div id="coords">
+                    </div>
+                    <div id="coords_mc"></div>
+                </div>
+            </main>
+        </div>
+        <aside class="left-sidebar">
+            <div class="" id="message_display">
+                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            </div>
+            <div id="image_list">
+                <ol>
+                    % for img in imageLists:
+                    <%
 last_image = imageLists[img]['image_path']
 %>
-% if imageLists[img]['txt_path'] == "" and path_image == "":
-<%
+                    % if imageLists[img]['txt_path'] == "" and path_image == "":
+                    <%
 path_image = imageLists[img]['image_path']
-selected_image = ' selected'
+selected_image = ' active'
 %>
-% else:
-<%
+                    % else:
+                    <%
 selected_image = ''
 %>
-% endif
-            <li class="imagelist${selected_image}${' hasCoords'  if imageLists[img]['txt_path'] else ' needsCoords'}">${imageLists[img]['image_path']}</li>
-            % endfor
-        </ol>
+                    % endif
+                    <li class="imagelist${selected_image}${' hasCoords'  if imageLists[img]['txt_path'] else ' needsCoords'}">${imageLists[img]['image_path']}</li>
+                    % endfor
+                </ol>
+            </div>
+            <div class="imglist-footer">
+                <div id="next_img" class="next_img"><input class="button_text" type="submit" name="Next" value="Next" /></div>
+                <div id="prev_img" class="prev_img"><input class="button_text" type="submit" name="Prev" value="Prev" /></div>
+            </div>
+        </aside>
     </div>
-</div>
-<div>
-    <div id="coords">
-    </div>
-    <div id="coords_mc"></div>
+    <footer class="footer">
+    </footer>
 </div>
 <script type="text/javascript">
 image_path = '${path_image  if path_image else last_image}'; //Load Image ;
 </script>
 <script src="html/assets/drawRectangles.js"></script>
+<script type="text/javascript">
+// all this work just to be able to high enter to select first element in filter
+var input = document.querySelector("input");
+var options = $.map($('#checkName option'), function(option) {
+    return option.value;
+});
+input.addEventListener('keypress', function(e) {
+    if (e.keyCode == 13) {
+        var relevantOptions = options.filter(function(option) {
+            return option.toLowerCase().includes(input.value.toLowerCase());
+        }); // filtering the data list based on input query
+        if (relevantOptions.length > 0) {
+            input.value = relevantOptions.shift(); //Taking the first
+        }
+    }
+});
+$(".imagelist").on('click', function(event) {
+    var cur_image = $('#image_list ol li.active').text();
+    drawRectangleOnCanvas.aj_coord_save(cur_image);
+
+    var new_image = $(this).text();
+    drawRectangleOnCanvas.loadImage(new_image);
+    $('.active').removeClass('active');
+    $(this).addClass('active');
+    show_next_prev_or_not();
+
+});
+$('div.next_img').on('click', function(event) {
+    var cur_image = $('#image_list ol li.active').text();
+    drawRectangleOnCanvas.aj_coord_save(cur_image);
+
+    var nextImg = $('#image_list ol li.active').closest('li').next('li');
+    var new_image = $('#image_list ol li.active').closest('li').next('li').text();
+    var nextImgLiNum = $('#image_list ol li.active').closest('li').next('li').index();
+
+    $('.active').removeClass('active');
+    nextImg.addClass('active');
+    show_next_prev_or_not();
+    drawRectangleOnCanvas.loadImage(new_image);
+
+});
+$('div .prev_img').on('click', function(event) {
+    var cur_image = $('#image_list ol li.active').text();
+    drawRectangleOnCanvas.aj_coord_save(cur_image);
+
+    var prevImg = $('#image_list ol li.active').closest('li').prev('li');
+    var new_image = $('#image_list ol li.active').closest('li').prev('li').text();
+    var prevImgLiNum = $('#image_list ol li.active').closest('li').prev('li').index();
+
+    $('.active').removeClass('active');
+    prevImg.addClass('active');
+    show_next_prev_or_not();
+    drawRectangleOnCanvas.loadImage(new_image);
+});
+// show/hide - next prev
+function show_next_prev_or_not() {
+
+    // var totalImgNum = $('#image_list ol li').length;
+    // var curnImgNum = $('#image_list ol li.active').index();
+    // var nextImg = $('#image_list ol li.active').closest('li').next('li').text();
+    // var prevtImg = $('#image_list ol li.active').closest('li').prev('li').text();
+    var nextImgNum = $('#image_list ol li.active').closest('li').next('li').index();
+    var prevImgNum = $('#image_list ol li.active').closest('li').prev('li').index();
+    if (prevImgNum < 0) {
+        $("div #prev_img").hide();
+    } else {
+        $("div #prev_img").show();
+    }
+    if (nextImgNum < 0) {
+        $("div #next_img").hide();
+    } else {
+        $("div #next_img").show();
+    }
+}
+
+$(document).ready(function() {
+    $('#message_display').hide();
+    drawRectangleOnCanvas.loadImage(image_path)
+});
+</script>

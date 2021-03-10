@@ -36,6 +36,8 @@ $("#selectClass").bind("focus", function(e) {
 $("#selectClass").bind("change", function(e) {
     var sel = $("#selectClass")
     drawRectangleOnCanvas.selectClassChange(sel);
+    $("#selectClass").css("background-color", "");
+    $("#selectClass").css("color", "");
 });
 $("div").delegate(".rectanglelist", "click", function() {
     var sel_id = $(this).attr('id')
@@ -182,6 +184,9 @@ var drawRectangleOnCanvas = {
             $("#message_display").attr('class', 'warn');
             $('#message_display').show();
             $("#message_display").contents()[0].data = 'Uhh....! select a class first';
+            $("#selectClass").css("background-color", "yellow");
+            $("#selectClass").css("color", "red");
+            // $("#select_mooo").attr('size',6);
             isRecDown = false;
             return
         }
@@ -243,13 +248,13 @@ var drawRectangleOnCanvas = {
         dh = 1. / image_height
         x1 = (xmin + xmax) / 2.0
         y1 = (ymin + ymax) / 2.0
-        w1 = xmax - xmin
-        h1 = ymax - ymin
+        x2 = xmax - xmin
+        y2 = ymax - ymin
         var obj = {
             x1: (x1 * dw).toFixed(6),
             y1: (y1 * dh).toFixed(6),
-            w1: (w1 * dw).toFixed(6),
-            h1: (h1 * dh).toFixed(6)
+            x2: (x2 * dw).toFixed(6),
+            y2: (y2 * dh).toFixed(6)
         };
         return obj
     },
@@ -275,10 +280,10 @@ var drawRectangleOnCanvas = {
             b = dh - 1
         }
         var obj = {
-            x: l,
-            y: t,
-            w: r,
-            h: b
+            x1: l,
+            y1: t,
+            x2: r,
+            y2: b
         };
         return obj
     },
@@ -287,9 +292,6 @@ var drawRectangleOnCanvas = {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(base_image, 0, 0);
         context.lineWidth = strokeWidth;
-        // if( rects.length < 1) {
-        //     return 
-        // }
 
         $('#coords').html('<OL start="0">Click the element below to delete')
         for (var i = 0; i < rects.length; i++) {
@@ -319,13 +321,13 @@ var drawRectangleOnCanvas = {
             // context.fillText(r.selectedClass, r.left - (width / 2), r.top + (height / 2));
             context.fillText(`(${i}) ${r.selectedClass}`, r.left + 5, r.top + 15);
 
-            yoloCoors = drawRectangleOnCanvas.yoloCoordValuesConverter(r.left, r.top, r.right, r.bottom)
-            // yoloCoorsr = drawRectangleOnCanvas.yoloCoordValuesReverter(yoloCoors.x1, yoloCoors.y1, yoloCoors.w1, yoloCoors.h1)
-            // console.log(yoloCoorsr)
+            // yoloCoords = drawRectangleOnCanvas.yoloCoordValuesConverter(r.left, r.top, r.right, r.bottom)
+            // yoloCoordsr = drawRectangleOnCanvas.yoloCoordValuesReverter(yoloCoords.x1, yoloCoords.y1, yoloCoords.x2, yoloCoords.y2)
+            // console.log(yoloCoordsr)
 
             $('#coords OL').append(
                 `<LI class="rectanglelist" id="${i}">${r.selectedClass} - ${r.left},${r.top} to ${r.right},${r.bottom}` +
-                `<br>${r.classKey} ${yoloCoors.x1} ${yoloCoors.y1} ${yoloCoors.w1} ${yoloCoors.h1}</LI>`
+                `<br>${r.classKey} ${r.x1} ${r.y1} ${r.x2} ${r.y2}</LI>`
             );
 
         }
@@ -333,11 +335,6 @@ var drawRectangleOnCanvas = {
     },
 
     handleMouseOut: function(e) {
-
-        // btnCode = e.button;
-        // if (btnCode != 0) {
-        //     return
-        // }
 
         // tell the browser we're handling this event
         e.preventDefault();
@@ -351,10 +348,6 @@ var drawRectangleOnCanvas = {
     },
 
     handleMouseMove: function(e) {
-        // btnCode = e.button;
-        // if (btnCode != 0) {
-        //     return
-        // }
         if (!isRecDown) {
             return;
         }
@@ -365,15 +358,34 @@ var drawRectangleOnCanvas = {
         mouseX = parseInt(e.clientX - canvas.offsetLeft);
         mouseY = parseInt(e.clientY - canvas.offsetTop);
 
+        var left = Math.min(startX, mouseX);
+        var right = Math.max(startX, mouseX);
+        var top = Math.min(startY, mouseY);
+        var bottom = Math.max(startY, mouseY);
+
+        yoloCoords = drawRectangleOnCanvas.yoloCoordValuesConverter(left, top, right, bottom)
         newRect = {
-            left: Math.min(startX, mouseX),
-            right: Math.max(startX, mouseX),
-            top: Math.min(startY, mouseY),
-            bottom: Math.max(startY, mouseY),
+            left: left,
+            right: right,
+            top: top,
+            bottom: bottom,
+            x1: yoloCoords.x1,
+            y1: yoloCoords.y1,
+            x2: yoloCoords.x2,
+            y2: yoloCoords.y2,
             color: "red",
             selectedClass: selectedClass,
             classKey: classKey
         }
+        // newRect = {
+        //     left: Math.min(startX, mouseX),
+        //     right: Math.max(startX, mouseX),
+        //     top: Math.min(startY, mouseY),
+        //     bottom: Math.max(startY, mouseY),
+        //     color: "red",
+        //     selectedClass: selectedClass,
+        //     classKey: classKey
+        // }
 
         drawRectangleOnCanvas.drawAll();
         context.strokeStyle = "yellow";
@@ -387,75 +399,71 @@ var drawRectangleOnCanvas = {
 
 
     aj_coord_lookup: function(image) {
-
-        q_image = image.substring(0, image.length-4).split('/').reverse()[0]
+        rects = []
+        q_image = image.substring(0, image.length - 4).split('/').reverse()[0]
 
         $.ajax({
             type: "GET",
             url: "/get_coords_file",
-            data: { 
+            data: {
                 the_image: q_image,
                 // access_token: $("#access_token").val() 
             },
             success: function(result) {
-                console.log('ok');
+                // console.log(rects);
 
                 j_results = JSON.parse(result)
-                rects = []
+                newRawRect = []
+                newRect = {}
+                // rects = []
                 for (var i = 0; i < j_results.length; i++) {
-                    // tl_coords = drawRectangleOnCanvas.yoloCoordValuesReverter(a_result[1], a_result[2], a_result[3], a_result[4])
+
+                    //--- WHen server returns cv2 formated coords
+                    newRawRect = drawRectangleOnCanvas.yoloCoordValuesReverter(
+                        j_results[i]['x1'],
+                        j_results[i]['y1'],
+                        j_results[i]['x2'],
+                        j_results[i]['y2']
+                    )
                     newRect = {
-                        left: j_results[i]['x1'],
-                        right: j_results[i]['y1'],
-                        top: j_results[i]['x2'],
-                        bottom: j_results[i]['y2'],
+                        left: newRawRect['x1'],
+                        top: newRawRect['y1'],
+                        right: newRawRect['x2'],
+                        bottom: newRawRect['y2'],
+                        x1: j_results[i]['x1'],
+                        y1: j_results[i]['y1'],
+                        x2: j_results[i]['x2'],
+                        y2: j_results[i]['y2'],
                         color: "orange",
                         selectedClass: options[j_results[i]['cid']],
                         classKey: j_results[i]['cid']
                     }
+                    // //--- WHen server returns cv2 formated coords
+                    // newRect = {
+                    //     left: j_results[i]['x1'],
+                    //     right: j_results[i]['y1'],
+                    //     top: j_results[i]['x2'],
+                    //     bottom: j_results[i]['y2'],
+                    //     color: "orange",
+                    //     selectedClass: options[j_results[i]['cid']],
+                    //     classKey: j_results[i]['cid']
+                    // }
                     rects.push(newRect);
 
                 }
-                console.log(rects)
                 drawRectangleOnCanvas.drawAll();
             },
             error: function(result) {
                 console.log('error');
             }
         });
+    },
+
+
+    aj_coord_save: function(image) {
+        console.log(`aj_coord_save: ${image}`);
+        console.log(`aj_coord_save: ${rects.length}`);
+        console.log(rects);
     }
 
 }
-
-// all this work just to be able to high enter to select first element in filter
-var input = document.querySelector("input");
-var options = $.map($('#checkName option'), function(option) {
-    return option.value;
-});
-input.addEventListener('keypress', function(e) {
-    if (e.keyCode == 13) {
-        var relevantOptions = options.filter(function(option) {
-            return option.toLowerCase().includes(input.value.toLowerCase());
-        }); // filtering the data list based on input query
-        if (relevantOptions.length > 0) {
-            input.value = relevantOptions.shift(); //Taking the first
-        }
-    }
-});
-
-$(document).ready(function() {
-    $('#message_display').hide();
-    drawRectangleOnCanvas.loadImage(image_path)
-});
-$(".imagelist").on('click', function(event) {
-    new_image = $(this).text();
-    drawRectangleOnCanvas.loadImage(new_image)
-    $('.selected').removeClass('selected');
-    $(this).addClass('selected');
-
-});
-
-
-
-
-

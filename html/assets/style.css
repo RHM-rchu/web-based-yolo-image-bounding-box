@@ -1,3 +1,4 @@
+
 body {
     margin: 0;
     padding: 0;
@@ -9,48 +10,49 @@ body {
     background-color: #fff;
 }
 
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 10px;
-}
-
-.span-col-2 {
-    grid-column: span 2 / auto;
+.wrapper {
+  width: 100%;
+  min-width: 600px;
 }
 
 
-div {
-    border: 0px solid black;
-}
 
-/*---------------------------------------------*/
-div#image_list {
-    overflow: auto;
-    max-width: 600px;
-    min-height: 200px;
-    max-height: 400px;
-    background-color: #cecece;
+/*div {
+    border: 1px solid black;
 }
 
 
-/*---------------------------------------------*/
-#canvascontainer {
-    margin: 20px;
-    /*margin-left: 20px;*/
+
+
+/* Middle
+-----------------------------------------------------------------------------*/
+.middle {
+  width: 100%;
+  position: relative;
+}
+.middle:after {
+  display: table;
+  clear: both;
+  content: '';
+}
+.container {
+  width: 100%;
+  float: left;
+  overflow: hidden;
+}
+.content {
+  padding: 0 0 0 370px;
 }
 
-#canvasarea {
-    /*margin: 10px;*/
-}
 
+
+
+/*--------------------------------*/
 input#selectClass {
     --active: #275EFE;
     --border: #BBC1E1;
     border: 1px solid var(--bc, var(--border));
     transition: box-shadow .2s;
-    background-color: yellow;
-    color: red;
     font-size: 24px;
     margin: 5px;
 }
@@ -60,8 +62,9 @@ input#selectClass:focus {
 }
 
 li.rectanglelist {
-    margin: 10px 0;
-    background-color: orange;
+    padding: 10px;
+    background-color: #ffff00;
+    box-shadow:inset 0px -3px 7px 0px #cc9900;
 }
 
 li.hasCoords {
@@ -73,8 +76,8 @@ li.needsCoords {
     color: green;
 }
 
-li.selected {
-    background-color: yellow;
+li.active {
+    background-color: #ffff00;
 }
 
 #checkName {
@@ -87,7 +90,62 @@ li.selected {
 
 
 
-/*---------------------------------------------*/
+/* Left Sidebar
+-----------------------------------------------------------------------------*/
+.left-sidebar {
+  float: left;
+  width: 350px;
+  margin-left: -100%;
+  position: relative;
+}
+
+
+div.left-rail {
+  min-width: 350px;
+  max-width: 450px;
+}
+div#image_list {
+    /*overflow: auto;*/
+    overflow-y: scroll;
+    overflow-x: scroll;
+    margin-top: 20px;
+    max-width: 600px;
+    min-height: 200px;
+    max-height: 400px;
+    background-color: #cecece;
+}
+
+div.imglist-nav {
+    /*overflow: auto;*/
+    max-width: 600px;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+div.next_img {
+    float: right;
+}
+
+div.prev_img {
+    float: left;
+}
+
+/* Footer
+-----------------------------------------------------------------------------*/
+.footer {
+  height: 100px;
+}
+
+
+
+
+
+
+
+
+
+/* Messages
+-----------------------------------------------------------------------------*/
 .alert {
     padding: 20px;
     background-color: #f44336;
@@ -119,4 +177,33 @@ li.selected {
     line-height: 20px;
     cursor: pointer;
     transition: 0.3s;
+}
+
+
+
+
+/* General
+-----------------------------------------------------------------------------*/
+input.button_text {
+    box-shadow:inset 0px -3px 7px 0px #29bbff;
+    background:linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
+    background-color:#2dabf9;
+    border-radius:3px;
+    border:1px solid #0b0e07;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:Arial;
+    font-size:15px;
+    padding:9px 23px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #263666;
+}
+input.button_text:hover {
+    background:linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);
+    background-color:#0688fa;
+}
+input.button_text:active {
+    position:relative;
+    top:1px;
 }

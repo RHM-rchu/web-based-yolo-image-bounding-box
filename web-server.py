@@ -120,7 +120,6 @@ def convert_labels(path, x1, y1, x2, y2):
 
 
 
-
 # -----------------------------------------
 def get_coords_file(self, query_components={}):
     if 'the_image' in query_components:
@@ -128,14 +127,25 @@ def get_coords_file(self, query_components={}):
         base_name = os.path.basename(the_image)
         coord_file = f"{TRAINING_PATH}/{base_name}.txt"
 
-    # if os.path.isfile(coord_file):
-    #     with open (coord_file, "r") as myfile:
-    #         coord_data = myfile.readlines()
-    #         # coord_data = [s.rstrip() for s in coord_data]
-    #         for s in coord_data:
-    #             print(s)
+    cv2_coords = []
+    if os.path.isfile(coord_file):
+        with open (coord_file, "r") as myfile:
+            coord_data = myfile.readlines()
+            coord_data = [s.rstrip() for s in coord_data]
+            for s in coord_data:
+                chunks = s.split(' ')
+                cv2_coords.append(
+                    {
+                    'cid': chunks[0],
+                    'x1': chunks[1],
+                    'y1': chunks[2],
+                    'x2': chunks[3],
+                    'y2': chunks[4],
+                    }
+                )
 
-    cv2_coords = revert_labels(f"{TRAINING_PATH}/{base_name}.jpg", f"{TRAINING_PATH}/{base_name}.txt")
+    cv2_coords2 = revert_labels(f"{TRAINING_PATH}/{base_name}.jpg", f"{TRAINING_PATH}/{base_name}.txt")
+    print(cv2_coords2)
     # print('--------------------cv2_coords')
     print(cv2_coords)
 
@@ -147,7 +157,7 @@ def get_coords_file(self, query_components={}):
 
 # -----------------------------------------
 def render_html_homepage(query_components=None):
-
+    classesFile = f"{TRAINING_PATH}/classes.txt"
 
 
     # jpg_files = [f for f in os.listdir(TRAINING_PATH) if f.endswith('.jpg')]
@@ -168,6 +178,10 @@ def render_html_homepage(query_components=None):
         elif re.search("jpg|jpeg|png|gif|bmp|raw", reFile[2]):
             imageLists[reFile[1]]['image_path'] = f'{TRAINING_PATH}/{reFile[0]}'
 
+
+    if os.path.isfile(coord_file):
+        with open (coord_file, "r") as myfile:
+            coord_data = myfile.readlines()
 
     htmllist = Template(filename='html/_home.html')
     html = htmllist.render(

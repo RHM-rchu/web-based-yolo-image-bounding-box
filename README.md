@@ -23,7 +23,7 @@ logs in ./logs/web-server.log
 
 ### phase 3: [started]
   - dyamic load image **DONE**
-  - UI to cycle through images
+  - UI to cycle through images **DONE**
 
 
 ### phase 4: [started]

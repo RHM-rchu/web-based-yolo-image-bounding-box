@@ -119,8 +119,34 @@ def convert_labels(path, x1, y1, x2, y2):
 
 
 
-
 # -----------------------------------------
+def set_coords_file(query_components={}):
+    if 'the_image' in query_components:
+        print("-------------------")
+        print(query_components)
+        the_image = query_components["the_image"][0]
+        base_name = os.path.basename(the_image)
+        coord_file = f"{TRAINING_PATH}/{base_name}.txt"
+        # query_components.pop("the_image")
+        print(f"{base_name} --> {coord_file}")
+
+        if 'rects' in query_components:
+            rects = json.loads(query_components['rects'][0].replace("'", ""))
+            line = ""
+            for i, val in enumerate(rects):
+                # all('' in e  for e in val )
+                for e in ['left', 'right', 'top', 'bottom', 'color', 'selectedClass']: 
+                    if e in val: val.pop(e) 
+                if bool(len(['' for x in val.values() if x == ""])): 
+                    continue
+
+                print(f"-----------------{i}")
+                print(val)
+
+                line += f"{val['classKey']} {val['x1']} {val['y1']} {val['x2']} {val['y2']}\n"
+            with open(coord_file, 'w+') as f:
+                f.write(line)
+
 def get_coords_file(self, query_components={}):
     if 'the_image' in query_components:
         the_image = query_components["the_image"][0]
@@ -147,7 +173,7 @@ def get_coords_file(self, query_components={}):
     # cv2_coords2 = revert_labels(f"{TRAINING_PATH}/{base_name}.jpg", f"{TRAINING_PATH}/{base_name}.txt")
     # print(cv2_coords2)
     # print('--------------------cv2_coords')
-    print(cv2_coords)
+    # print(cv2_coords)
 
     self.send_header('Content-type', 'application/json')
     self.end_headers()
@@ -257,9 +283,9 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         fields = parse_qs(self.rfile.read(length).decode('utf-8'))
         html_body = None
         
-        if self.path.startswith('/edit'):
-            html_body = render_html_homepage(
-                querycomponents=fields,
+        if self.path.startswith('/set_coords_file'):
+            html_body = set_coords_file(
+                query_components=fields,
                 )
 
         htmlwrapper = Template(filename='html/wrapper.html')

@@ -60,15 +60,13 @@ var drawRectangleOnCanvas = {
     loadImage: function(img) {
         base_image.src = img; //Load Image ;
 
-        drawRectangleOnCanvas.aj_coord_lookup(base_image.src)
-
-
         base_image.onload = function() {
             image_height = this.height
             image_width = this.width
             canvas.width = image_width;
             canvas.height = image_height;
             context.drawImage(base_image, 0, 0);
+            drawRectangleOnCanvas.aj_coord_lookup(base_image.src)
         }
         rects = []
         isRecDown = false;
@@ -135,6 +133,7 @@ var drawRectangleOnCanvas = {
                 break;
 
             case 1: //middle click 
+            case 2: //right click
 
                 mouseX = parseInt(e.clientX - canvas.offsetLeft);
                 mouseY = parseInt(e.clientY - canvas.offsetTop);
@@ -162,11 +161,11 @@ var drawRectangleOnCanvas = {
                 drawRectangleOnCanvas.drawAll();
                 break;
 
-            case 2:
-                console.log('Right button clicked.');
-                isRecDown = false;
-                showCrosshair = true;
-                break;
+            // case 2: //right click
+            //     console.log('Right button clicked.');
+            //     isRecDown = false;
+            //     showCrosshair = true;
+            //     break;
 
             default:
                 console.log('Unexpected code: ' + btnCode);
@@ -175,7 +174,6 @@ var drawRectangleOnCanvas = {
         startX = parseInt(e.clientX - canvas.offsetLeft);
         startY = parseInt(e.clientY - canvas.offsetTop);
 
-        // Put your mousedown stuff here
         isRecDown = true;
     },
 
@@ -266,7 +264,7 @@ var drawRectangleOnCanvas = {
         t = Math.round((parseFloat(y1) - parseFloat(y2) / 2) * dh)
         r = Math.round((parseFloat(x1) + parseFloat(x2) / 2) * dw)
         b = Math.round((parseFloat(y1) + parseFloat(y2) / 2) * dh)
-
+// console.log(`${l},${t},${r},${b},,${image_width},,${image_height}`)
         if (l < 0) {
             l = 0
         }
@@ -308,7 +306,10 @@ var drawRectangleOnCanvas = {
             // context.closePath();
             // context.fillStyle = r.color;
             // context.fill();
-
+            context.globalAlpha = 0.2;
+            context.fillStyle = 'green';
+            context.fillRect(r.left, r.top, r.right - r.left, r.bottom - r.top);
+            context.globalAlpha = 1;
 
             var text = drawCount;
             context.fillStyle = "#fff";
@@ -451,6 +452,8 @@ var drawRectangleOnCanvas = {
                     rects.push(newRect);
 
                 }
+// console.log(q_image)
+// console.log(rects)
                 drawRectangleOnCanvas.drawAll();
             },
             error: function(result) {
@@ -460,10 +463,37 @@ var drawRectangleOnCanvas = {
     },
 
 
-    aj_coord_save: function(image) {
-        console.log(`aj_coord_save: ${image}`);
+    aj_coord_save: function(image, cur_element) {
+        if( rects.length <= 0 ) {
+            return
+        }
+        cur_element.removeClass('needsCoords');
+        cur_element.addClass('hasCoords');
+
+        console.log(`--------aj_coord_save: ${image}`);
         console.log(`aj_coord_save: ${rects.length}`);
         console.log(rects);
+        q_image = image.substring(0, image.length - 4).split('/').reverse()[0]
+
+        $.ajax({
+            type: "POST",
+            url: "/set_coords_file", 
+            // contentType: "application/json; charset=utf-8",
+            // dataType: "json",
+            // data: {'boxes':rects},
+            data: {
+                'the_image': q_image,
+                'rects': JSON.stringify(rects),
+                // access_token: $("#access_token").val() 
+            },
+            success: function(result) {
+console.log(rects);
+                    return result
+            },
+            error: function(result) {
+                console.log('error');
+            }
+        });
     }
 
 }

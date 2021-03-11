@@ -53,6 +53,14 @@ selected_image = ''
                 <div id="next_img" class="next_img"><input class="button_text" type="submit" name="Next" value="Next" /></div>
                 <div id="prev_img" class="prev_img"><input class="button_text" type="submit" name="Prev" value="Prev" /></div>
             </div>
+            <div class="instruction">
+                <ol>
+                    <li>Select Class in Dropdown</li>
+                    <li>Draw a box around object</li>
+                    <li>Right or Center Wheel click to delete a box</li>
+                    <li>Click Next or Prev to Save</li>
+                </ol>
+            </div>
         </aside>
     </div>
     <footer class="footer">
@@ -60,6 +68,10 @@ selected_image = ''
 </div>
 <script type="text/javascript">
 image_path = '${path_image  if path_image else last_image}'; //Load Image ;
+$(document).ready(function() {
+    $('#message_display').hide();
+    drawRectangleOnCanvas.loadImage(image_path)
+});
 </script>
 <script src="html/assets/drawRectangles.js"></script>
 <script type="text/javascript">
@@ -79,23 +91,26 @@ input.addEventListener('keypress', function(e) {
     }
 });
 $(".imagelist").on('click', function(event) {
-    var cur_image = $('#image_list ol li.active').text();
-    drawRectangleOnCanvas.aj_coord_save(cur_image);
+    var cur_element = $(this);
+    var new_image = cur_element.text();
 
-    var new_image = $(this).text();
-    drawRectangleOnCanvas.loadImage(new_image);
+    var cur_image = $('#image_list ol li.active').text();
+    drawRectangleOnCanvas.aj_coord_save(cur_image, cur_element);
+
     $('.active').removeClass('active');
     $(this).addClass('active');
     show_next_prev_or_not();
+    drawRectangleOnCanvas.loadImage(new_image);
 
 });
 $('div.next_img').on('click', function(event) {
-    var cur_image = $('#image_list ol li.active').text();
-    drawRectangleOnCanvas.aj_coord_save(cur_image);
+    var cur_element = $('#image_list ol li.active');
+    var new_image = cur_element.closest('li').next('li').text();
+    var cur_image = cur_element.text();
+    drawRectangleOnCanvas.aj_coord_save(cur_image, cur_element);
 
-    var nextImg = $('#image_list ol li.active').closest('li').next('li');
-    var new_image = $('#image_list ol li.active').closest('li').next('li').text();
-    var nextImgLiNum = $('#image_list ol li.active').closest('li').next('li').index();
+    var nextImg = cur_element.closest('li').next('li');
+    var nextImgLiNum = cur_element.closest('li').next('li').index();
 
     $('.active').removeClass('active');
     nextImg.addClass('active');
@@ -104,27 +119,29 @@ $('div.next_img').on('click', function(event) {
 
 });
 $('div .prev_img').on('click', function(event) {
-    var cur_image = $('#image_list ol li.active').text();
-    drawRectangleOnCanvas.aj_coord_save(cur_image);
+    var cur_element = $('#image_list ol li.active');
+    var new_image = cur_element.closest('li').prev('li').text();
+    var cur_image = cur_element.text();
+    drawRectangleOnCanvas.aj_coord_save(cur_image, cur_element);
 
-    var prevImg = $('#image_list ol li.active').closest('li').prev('li');
-    var new_image = $('#image_list ol li.active').closest('li').prev('li').text();
-    var prevImgLiNum = $('#image_list ol li.active').closest('li').prev('li').index();
+    var prevImg = cur_element.closest('li').prev('li');
+    var prevImgLiNum = cur_element.closest('li').prev('li').index();
 
     $('.active').removeClass('active');
     prevImg.addClass('active');
     show_next_prev_or_not();
     drawRectangleOnCanvas.loadImage(new_image);
 });
-// show/hide - next prev
+//---- show/hide - next prev
 function show_next_prev_or_not() {
 
     // var totalImgNum = $('#image_list ol li').length;
     // var curnImgNum = $('#image_list ol li.active').index();
     // var nextImg = $('#image_list ol li.active').closest('li').next('li').text();
     // var prevtImg = $('#image_list ol li.active').closest('li').prev('li').text();
-    var nextImgNum = $('#image_list ol li.active').closest('li').next('li').index();
-    var prevImgNum = $('#image_list ol li.active').closest('li').prev('li').index();
+    var cur_element = $('#image_list ol li.active');
+    var nextImgNum = cur_element.closest('li').next('li').index();
+    var prevImgNum = cur_element.closest('li').prev('li').index();
     if (prevImgNum < 0) {
         $("div #prev_img").hide();
     } else {
@@ -136,9 +153,4 @@ function show_next_prev_or_not() {
         $("div #next_img").show();
     }
 }
-
-$(document).ready(function() {
-    $('#message_display').hide();
-    drawRectangleOnCanvas.loadImage(image_path)
-});
 </script>

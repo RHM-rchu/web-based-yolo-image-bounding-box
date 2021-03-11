@@ -1,5 +1,5 @@
 # web-based-yolo-image-bounding-box
-Python Webserver: load images, draw bounding boxes for YOLO formated AI model training 
+Python Webserver: load images, draw bounding boxes for YOLO formated AI model training.
 
 ```
 pip3 install -r requirments.txt
@@ -16,20 +16,19 @@ logs in ./logs/web-server.log
   - YOLO center decimal coord convertion, then back to standar x,y from top corner
 
 
-### phase 2: [started]
-  - write YOLO txt complimentary file to image **DONE**
+### phase 2: [DONE]
+  - write YOLO txt complimentary file to image 
   - Save YOLO coords back to server on click out
 
 
-### phase 3: [started]
-  - dyamic load image **DONE**
-  - UI to cycle through images **DONE**
+### phase 3: [DONE]
+  - dyamic load image
+  - UI to cycle through images
 
 
 ### phase 4: [started]
   - progress bar
   - jump to next model image (pickup from where we left off) **DONE**
-
 
 ### phase 5: [Not started]
   - review UI

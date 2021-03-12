@@ -68,9 +68,9 @@ selected_image = ''
             </div>
             <div id="projects">
 
-                <form method="post" id="fileinfo" name="fileinfo" onsubmit="return submitForm();">
+                <form method="GET" id="projects" name="projects">
                 <label>Select Project:</label><br>
-                <select>
+                <select name="project">
             % for dir in dirLists:
                 % if dir == training_project:
 <%

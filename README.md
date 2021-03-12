@@ -30,6 +30,9 @@ logs in ./logs/web-server.log
   - progress bar
   - jump to next model image (pickup from where we left off)
 
-### phase 5: [Not started]
+### phase 5: [IN PROGRESS]
+  - create multiple projects
+    - zip upload a project
+  - zip model download
   - review UI
-  - zip model
+  - class manager

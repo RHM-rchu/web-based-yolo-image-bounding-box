@@ -6,6 +6,7 @@ import datetime, time, os, sys, json
 import re
 # import cv2
 import cgi, io, shutil
+import zipfile
 
 import subprocess, socketserver
 
@@ -214,11 +215,12 @@ def render_html_homepage(query_components=None):
     files = os.listdir(TRAINING_PROJECT_PATH)
     files.sort()
     imageLists = {}
+    class_data = []
 
     dirLists = getSet_projects()
 
     for f in files:
-        if f.startswith( '.' ) or f == 'classes.txt':
+        if f.endswith( '.zip' ) or f.startswith( '__MAC' ) or f.startswith( '.' ) or f == 'classes.txt':
             continue
         elif os.path.isdir(f"{TRAINING_PROJECT_PATH}/{f}"): 
             continue
@@ -243,6 +245,7 @@ def render_html_homepage(query_components=None):
         with open (classesFile, "r") as myfile:
             class_data = myfile.readlines()
             class_data = [s.rstrip() for s in class_data]
+
 
     htmllist = Template(filename='html/_home.html')
     html = htmllist.render(
@@ -286,37 +289,55 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
 
-    def deal_post_data(self):
+    def upload_post_data(self):
         fields = cgi.FieldStorage(
             fp=self.rfile,
             headers=self.headers,
             environ={'REQUEST_METHOD':'POST'}
             )
-
-        if 'project' in fields:
-            getSet_projects(fields['project'])
-        else:
-            getSet_projects()
-
-
         base_dir = ""
+
         try:
             if isinstance(fields['file'], list):
                 for f in fields['file']:
-                    print(f"[UPLOADED] file: {f.filename}")
-                    self.save_file(f)
+                    base_dir, extention = f.filename.rsplit('.', 1)
+                    self.upload_prep_move(f)
             else:
                 f = fields['file']
-                # base_name = re.sub("\.[a-z]{2,4}", "", f.filename)
-                print(f"[UPLOADED] file: {f.filename}")
-                self.save_file(f, base_dir)
+                self.upload_prep_move(f)
+
             return "Success"
         except IOError:
             return "Can't create file to write, do you have permission to write?"
 
-    def save_file(self, file, base_dir):
-        print(f"[SAVING] file: {file.filename}")
-        outpath = os.path.join("", file.filename)
+    def upload_prep_move(self, f):
+        base_dir, extention = f.filename.rsplit('.', 1)
+        base_dir_full = f"{TRAINING_PATH}/{base_dir}"
+        print("[1UPLOADED] file: {f.filename}")
+        self.save_file(f, base_dir_full)
+
+        print(f"[MOOOO]--------{extention}")
+        if extention == 'zip':
+            zipfile_path = f"{base_dir_full}/{f.filename}"
+            with zipfile.ZipFile(zipfile_path, 'r') as zip_ref:
+                zip_ref.extractall(base_dir_full + '/')
+
+                if os.path.isfile(zipfile_path):
+                    os.remove(zipfile_path)
+
+                mac_path = f"{base_dir_full}/__MACOSX"
+                if  os.path.isdir(mac_path):
+                    shutil.rmtree(mac_path)
+
+                classes_path = f"{base_dir_full}/classes.txt"
+                if not os.path.isfile(classes_path):
+                    shutil.copy(f"{TRAINING_PATH}/classes.txt", f"{base_dir_full}/")
+
+
+    def save_file(self, file, base_dir_full):
+        print(f"[SAVING] file: {base_dir_full}/{file.filename}")
+        os.mkdir(f"{base_dir_full}")
+        outpath = os.path.join(f"{base_dir_full}", file.filename)
         with open(outpath, 'wb') as fout:
             shutil.copyfileobj(file.file, fout, 100000)
 
@@ -371,7 +392,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             return 
         elif self.path.startswith('/upload_file'):
             ###### option 0
-            html_body = self.deal_post_data()
+            html_body = self.upload_post_data()
             self.wfile.write(bytes(html_body, "utf-8"))
             return  
 
@@ -410,8 +431,12 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(bytes(json.dumps(response), 'utf-8'))
                 return None
 
+        path = self.path
+        if '?' in self.path:
+             path = self.path.split('?')[0]
+        print("-----" + path)
 
-        filename =  self.path
+        filename =  path
         filename_rel = filename.strip('/')
         send_asset = False
 
@@ -431,7 +456,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             send_asset = True
         elif filename[-4:] == '.ico':
             self.send_header('Content-type', 'image/x-icon')
-        elif self.path.endswith(".jpg") or self.path.endswith(".gif") or self.path.endswith(".png"):
+        elif filename.endswith(".jpg") or filename.endswith(".gif") or filename.endswith(".png"):
             contenttype = content_type(filename_rel)
             self.send_header('Content-type', contenttype)
             send_asset = True
@@ -445,6 +470,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             return
         elif send_asset or self.path.startswith('/html/assets/') or self.path.startswith(f'/{TRAINING_PATH}/'):
+            print("-----" + path)
             self.end_headers()
             with open(filename_rel, 'rb') as fh:
                 html = fh.read()

@@ -1,4 +1,3 @@
-
 body {
     margin: 0;
     padding: 0;
@@ -11,8 +10,8 @@ body {
 }
 
 .wrapper {
-  width: 100%;
-  min-width: 600px;
+    width: 100%;
+    min-width: 600px;
 }
 
 
@@ -27,23 +26,25 @@ body {
 /* Middle
 -----------------------------------------------------------------------------*/
 .middle {
-  width: 100%;
-  position: relative;
-}
-.middle:after {
-  display: table;
-  clear: both;
-  content: '';
-}
-.container {
-  width: 100%;
-  float: left;
-  overflow: hidden;
-}
-.content {
-  padding: 0 0 0 370px;
+    width: 100%;
+    position: relative;
 }
 
+.middle:after {
+    display: table;
+    clear: both;
+    content: '';
+}
+
+.container {
+    width: 100%;
+    float: left;
+    overflow: hidden;
+}
+
+.content {
+    padding: 0 0 0 370px;
+}
 
 
 
@@ -61,10 +62,28 @@ input#selectClass:focus {
     box-shadow: 0 0 0 var(--focus);
 }
 
+div#coords {
+    margin-top: 10px;
+    width: 60%;
+    height: 400px;
+    overflow-y: scroll;
+    cursor: pointer;
+}
+
 li.rectanglelist {
     padding: 10px;
+    background-color: #fffed6;
+    border: 1px solid black;
+}
+
+
+li.imagelist {
+    cursor: pointer;
+}
+
+li.imagelist:hover {
+    cursor: pointer;
     background-color: #ffff00;
-    box-shadow:inset 0px -3px 7px 0px #cc9900;
 }
 
 li.hasCoords {
@@ -76,7 +95,8 @@ li.needsCoords {
     color: green;
 }
 
-li.active {
+li.active,
+.canvasarea_name {
     background-color: #ffff00;
 }
 
@@ -93,17 +113,18 @@ li.active {
 /* Left Sidebar
 -----------------------------------------------------------------------------*/
 .left-sidebar {
-  float: left;
-  width: 350px;
-  margin-left: -100%;
-  position: relative;
+    float: left;
+    width: 350px;
+    margin-left: -100%;
+    position: relative;
 }
 
 
 div.left-rail {
-  min-width: 350px;
-  max-width: 450px;
+    min-width: 350px;
+    max-width: 450px;
 }
+
 div#image_list {
     /*overflow: auto;*/
     overflow-y: scroll;
@@ -129,16 +150,112 @@ div.next_img {
 div.prev_img {
     float: left;
 }
-div.instruction{   
-    padding-right: 20px;
+
+
+
+
+/* Progress bar upload
+-----------------------------------------------------------------------------*/
+#progress-wrp {
+    width: 400px;
+    border: 1px solid #0099CC;
+    padding: 1px;
     position: relative;
-    margin-top:70px;
+    height: 30px;
+    border-radius: 3px;
+    margin: 10px;
+    text-align: left;
+    background: #fff;
+    box-shadow: inset 1px 3px 6px rgba(0, 0, 0, 0.12);
+}
+
+#progress-wrp .progress-bar {
+    height: 100%;
+    border-radius: 3px;
+    background-color: #f39ac7;
+    width: 0;
+    box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.11);
+}
+
+#progress-wrp .status {
+    top: 3px;
+    left: 50%;
+    position: absolute;
+    display: inline-block;
+    color: #000000;
+}
+
+/* Progress bar draw complete
+-----------------------------------------------------------------------------*/
+div#progress, div#progress-upload {
+    width: 100%;
+    position: relative;
+    margin: 70px auto;
+    text-align: center;
+}
+progress#upload-status {
+    display: none;
+}
+
+progress {
+    width: 90%;
+    display: block;
+    /* default: inline-block */
+    margin: 0 auto;
+    padding: 3px;
+    border: 0 none;
+    background: #444;
+    border-radius: 14px;
+    text-align: center;
+}
+
+progress:after {
+    content: attr(data-label);
+    position: absolute;
+    text-align: center;
+    line-height: 25px;
+    /* line-height should be equal to bar height */
+    overflow: hidden;
+    color: #fff;
+    right: 0;
+    left: 0;
+    top: 0;
+}
+
+progress::-moz-progress-bar {
+    border-radius: 12px;
+    background: orange;
+
+}
+
+/* webkit */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    progress {
+        height: 25px;
+    }
+}
+
+progress::-webkit-progress-bar {
+    background: transparent;
+}
+
+progress::-webkit-progress-value {
+    border-radius: 12px;
+    background: orange;
+}
+
+
+
+div.instruction {
+    position: relative;
+    margin-top: 70px;
+    font-size: .6em;
 }
 
 /* Footer
 -----------------------------------------------------------------------------*/
 .footer {
-  height: 100px;
+    height: 100px;
 }
 
 
@@ -190,25 +307,27 @@ div.instruction{
 /* General
 -----------------------------------------------------------------------------*/
 input.button_text {
-    box-shadow:inset 0px -3px 7px 0px #29bbff;
-    background:linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
-    background-color:#2dabf9;
-    border-radius:3px;
-    border:1px solid #0b0e07;
-    display:inline-block;
-    cursor:pointer;
-    color:#ffffff;
-    font-family:Arial;
-    font-size:15px;
-    padding:9px 23px;
-    text-decoration:none;
-    text-shadow:0px 1px 0px #263666;
+    box-shadow: inset 0px -3px 7px 0px #29bbff;
+    background: linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
+    background-color: #2dabf9;
+    border-radius: 3px;
+    border: 1px solid #0b0e07;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 15px;
+    padding: 9px 23px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #263666;
 }
+
 input.button_text:hover {
-    background:linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);
-    background-color:#0688fa;
+    background: linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);
+    background-color: #0688fa;
 }
+
 input.button_text:active {
-    position:relative;
-    top:1px;
+    position: relative;
+    top: 1px;
 }

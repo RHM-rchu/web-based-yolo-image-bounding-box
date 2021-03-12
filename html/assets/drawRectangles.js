@@ -14,7 +14,7 @@ function drawImage() {}
 
 canvas.addEventListener("mousemove", function(e) {
     drawRectangleOnCanvas.handleMouseMove(e);
-    drawRectangleOnCanvas.drawCrosshair(e)
+    drawRectangleOnCanvas.drawCrosshair(e);
 }, false);
 canvas.addEventListener("mousedown", function(e) {
     drawRectangleOnCanvas.handleMouseDown(e);
@@ -24,7 +24,7 @@ canvas.addEventListener("mouseup", function(e) {
 }, false);
 canvas.addEventListener("mouseout", function(e) {
     drawRectangleOnCanvas.handleMouseOut(e);
-    drawRectangleOnCanvas.removeCrosshair(e)
+    drawRectangleOnCanvas.removeCrosshair(e);
 }, false);
 
 
@@ -39,9 +39,15 @@ $("#selectClass").bind("change", function(e) {
     $("#selectClass").css("background-color", "");
     $("#selectClass").css("color", "");
 });
-$("div").delegate(".rectanglelist", "click", function() {
-    var sel_id = $(this).attr('id')
-    drawRectangleOnCanvas.removeRect(sel_id);
+// $("div").delegate(".rectanglelist", "click", function() {
+//     var sel_id = $(this).attr('id')
+//     console.log(sel_id)
+//     drawRectangleOnCanvas.removeRect(sel_id);
+// });
+$("div").delegate(".rectanglelist", "mouseover", function() {
+    var sel_id = $(this).attr('id');
+    $(this).css("background-color", "red");
+    drawRectangleOnCanvas.drawAll(sel_id);
 });
 // no rigthclick menu in canvas
 $('#canvasarea').contextmenu(function() {
@@ -107,7 +113,7 @@ var drawRectangleOnCanvas = {
         sel.val('');
     },
     selectClassChange: function(sel) {
-        selectedClass = sel.val()
+        selectedClass = sel.val();
         $('#message_display').hide();
     },
     handleMouseDown: function(e) {
@@ -141,12 +147,12 @@ var drawRectangleOnCanvas = {
 
                 for (var i = 0; i < rects.length; i++) {
                     var r = rects[i];
-                    x1 = r.left
-                    y1 = r.top
-                    x2 = r.right
-                    y2 = r.bottom
-                    c = r.color
-                    sl = r.selectedClass
+                    x1 = r.left;
+                    y1 = r.top;
+                    x2 = r.right;
+                    y2 = r.bottom;
+                    c = r.color;
+                    sl = r.selectedClass;
                     // w = r.right - r.left
                     // h = r.bottom - r.top
                     if ((x1 < mouseX && y1 < mouseY) && (x2 > mouseX && y2 > mouseY)) {
@@ -211,7 +217,7 @@ var drawRectangleOnCanvas = {
         showCrosshair = true;
 
         rects.push(newRect);
-        newRect = {}
+        newRect = {};
 
         console.log(`Add (${rects.length}) - ${selectedClass}`);
 
@@ -229,25 +235,25 @@ var drawRectangleOnCanvas = {
         //     for example: <x> = <absolute_x> / <image_width> or <height> = <absolute_height> / <image_height>
         //     !!!atention: <x> <y> - are center of rectangle (are not top-left corner)
         if (x2 > x1) {
-            xmin = x1
-            xmax = x2
+            xmin = x1;
+            xmax = x2;
         } else {
-            xmin = x2
-            xmax = x1
+            xmin = x2;
+            xmax = x1;
         }
         if (y1 > y2) {
-            ymin = y2
-            ymax = y1
+            ymin = y2;
+            ymax = y1;
         } else {
-            ymin = y1
-            ymax = y2
+            ymin = y1;
+            ymax = y2;
         }
-        dw = 1. / image_width
-        dh = 1. / image_height
-        x1 = (xmin + xmax) / 2.0
-        y1 = (ymin + ymax) / 2.0
-        x2 = xmax - xmin
-        y2 = ymax - ymin
+        dw = 1. / image_width;
+        dh = 1. / image_height;
+        x1 = (xmin + xmax) / 2.0;
+        y1 = (ymin + ymax) / 2.0;
+        x2 = xmax - xmin;
+        y2 = ymax - ymin;
         var obj = {
             x1: (x1 * dw).toFixed(6),
             y1: (y1 * dh).toFixed(6),
@@ -258,24 +264,24 @@ var drawRectangleOnCanvas = {
     },
     yoloCoordValuesReverter: function(x1, y1, x2, y2) {
         // https://stackoverflow.com/questions/64096953/how-to-convert-yolo-format-bounding-box-coordinates-into-opencv-format
-        dw = image_width
-        dh = image_height
-        l = Math.round((parseFloat(x1) - parseFloat(x2) / 2) * dw)
-        t = Math.round((parseFloat(y1) - parseFloat(y2) / 2) * dh)
-        r = Math.round((parseFloat(x1) + parseFloat(x2) / 2) * dw)
-        b = Math.round((parseFloat(y1) + parseFloat(y2) / 2) * dh)
+        dw = image_width;
+        dh = image_height;
+        l = Math.round((parseFloat(x1) - parseFloat(x2) / 2) * dw);
+        t = Math.round((parseFloat(y1) - parseFloat(y2) / 2) * dh);
+        r = Math.round((parseFloat(x1) + parseFloat(x2) / 2) * dw);
+        b = Math.round((parseFloat(y1) + parseFloat(y2) / 2) * dh);
 // console.log(`${l},${t},${r},${b},,${image_width},,${image_height}`)
         if (l < 0) {
-            l = 0
+            l = 0;
         }
         if (r > dw - 1) {
             r = dw - 1
         }
         if (t < 0) {
-            t = 0
+            t = 0;
         }
         if (b > dh - 1) {
-            b = dh - 1
+            b = dh - 1;
         }
         var obj = {
             x1: l,
@@ -283,21 +289,29 @@ var drawRectangleOnCanvas = {
             x2: r,
             y2: b
         };
-        return obj
+        return obj;
     },
 
-    drawAll: function() {
+    drawAll: function(selected='') {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(base_image, 0, 0);
-        context.lineWidth = strokeWidth;
 
-        $('#coords').html('<OL start="0">Click the element below to delete')
+        $('#coords').html('<OL start="0">')
         for (var i = 0; i < rects.length; i++) {
             if (rects[i] == undefined) {
                 continue;
             }
             var r = rects[i];
-            context.strokeStyle = r.color;
+            if( i == selected && selected !== "") {
+                context.fillStyle = 'purple';
+                context.strokeStyle = 'red';
+                context.lineWidth = strokeWidth + 4;
+
+            } else {
+                context.fillStyle = 'green';
+                context.strokeStyle = r.color;
+                context.lineWidth = strokeWidth;
+            }
             context.globalAlpha = 1;
             context.strokeRect(r.left, r.top, r.right - r.left, r.bottom - r.top);
 
@@ -307,7 +321,6 @@ var drawRectangleOnCanvas = {
             // context.fillStyle = r.color;
             // context.fill();
             context.globalAlpha = 0.2;
-            context.fillStyle = 'green';
             context.fillRect(r.left, r.top, r.right - r.left, r.bottom - r.top);
             context.globalAlpha = 1;
 
@@ -332,7 +345,7 @@ var drawRectangleOnCanvas = {
             );
 
         }
-        $('#coords').append('</OL>')
+        $('#coords').append('</OL>');
     },
 
     handleMouseOut: function(e) {
@@ -392,22 +405,23 @@ var drawRectangleOnCanvas = {
         context.strokeStyle = "yellow";
         context.lineWidth = strokeWidth;
         context.globalAlpha = 1;
-        w = mouseX - startX
-        h = mouseY - startY
+        w = mouseX - startX;
+        h = mouseY - startY;
         context.strokeRect(startX, startY, w, h);
 
     },
 
 
     aj_coord_lookup: function(image) {
-        rects = []
-        q_image = image.substring(0, image.length - 4).split('/').reverse()[0]
+        rects = [];
+        q_image = image.substring(0, image.length - 4).split('/').reverse()[0];
 
         $.ajax({
             type: "GET",
             url: "/get_coords_file",
             data: {
                 the_image: q_image,
+                project: project,
                 // access_token: $("#access_token").val() 
             },
             success: function(result) {
@@ -463,16 +477,23 @@ var drawRectangleOnCanvas = {
     },
 
 
-    aj_coord_save: function(image, cur_element) {
-        if( rects.length <= 0 ) {
+    aj_coord_save: function(image, cur_element, clear=0) {
+        console.log(project)
+        if( rects.length <= 0 && clear == 0) {
             return
         }
-        cur_element.removeClass('needsCoords');
-        cur_element.addClass('hasCoords');
+        if( rects.length <= 0 ){
+            cur_element.removeClass('hasCoords');
+            cur_element.addClass('needsCoords');
 
-        console.log(`--------aj_coord_save: ${image}`);
-        console.log(`aj_coord_save: ${rects.length}`);
-        console.log(rects);
+        } else {
+            cur_element.removeClass('needsCoords');
+            cur_element.addClass('hasCoords');
+        }
+
+        // console.log(`--------aj_coord_save: ${image}`);
+        // console.log(`aj_coord_save: ${rects.length}`);
+        // console.log(rects);
         q_image = image.substring(0, image.length - 4).split('/').reverse()[0]
 
         $.ajax({
@@ -484,10 +505,11 @@ var drawRectangleOnCanvas = {
             data: {
                 'the_image': q_image,
                 'rects': JSON.stringify(rects),
+                'project': project,
                 // access_token: $("#access_token").val() 
             },
             success: function(result) {
-console.log(rects);
+// console.log(rects);
                     return result
             },
             error: function(result) {

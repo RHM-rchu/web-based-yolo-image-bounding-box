@@ -5,6 +5,7 @@ import base64
 import datetime, time, os, sys, json
 import re
 # import cv2
+import cgi, io, shutil
 
 import subprocess, socketserver
 
@@ -18,6 +19,8 @@ WEB_PASSWORD = "pass"
 SERVERPORT = 8081
 HOSTNAME = ""
 TRAINING_PATH = "training"
+TRAINING_PROJECT = ""
+TRAINING_PROJECT_PATH = ""
 LOG_FILE_WEB = "logs/web-server.log"
 
 #--- log to file
@@ -126,32 +129,39 @@ def set_coords_file(query_components={}):
         print(query_components)
         the_image = query_components["the_image"][0]
         base_name = os.path.basename(the_image)
-        coord_file = f"{TRAINING_PATH}/{base_name}.txt"
+        coord_file = f"{TRAINING_PROJECT_PATH}/{base_name}.txt"
         # query_components.pop("the_image")
-        print(f"{base_name} --> {coord_file}")
+        # print(f"{base_name} --> {coord_file}")
 
+        line = ""
         if 'rects' in query_components:
             rects = json.loads(query_components['rects'][0].replace("'", ""))
-            line = ""
-            for i, val in enumerate(rects):
-                # all('' in e  for e in val )
-                for e in ['left', 'right', 'top', 'bottom', 'color', 'selectedClass']: 
-                    if e in val: val.pop(e) 
-                if bool(len(['' for x in val.values() if x == ""])): 
-                    continue
+            cnt_rects = len(rects)
+            if cnt_rects <= 0:
+                try:
+                    print(f"[DELELETE] coord file: {coord_file}")
+                    os.remove(coord_file)
+                except OSError:
+                    return
+            else:
+                for i, val in enumerate(rects):
+                    # all('' in e  for e in val )
+                    for e in ['left', 'right', 'top', 'bottom', 'color', 'selectedClass']: 
+                        if e in val: val.pop(e) 
+                    if bool(len(['' for x in val.values() if x == ""])): 
+                        continue
 
-                print(f"-----------------{i}")
-                print(val)
+                    line += f"{val['classKey']} {val['x1']} {val['y1']} {val['x2']} {val['y2']}\n"
+                with open(coord_file, 'w+') as f:
+                    f.write(line)
 
-                line += f"{val['classKey']} {val['x1']} {val['y1']} {val['x2']} {val['y2']}\n"
-            with open(coord_file, 'w+') as f:
-                f.write(line)
+
 
 def get_coords_file(self, query_components={}):
     if 'the_image' in query_components:
         the_image = query_components["the_image"][0]
         base_name = os.path.basename(the_image)
-        coord_file = f"{TRAINING_PATH}/{base_name}.txt"
+        coord_file = f"{TRAINING_PROJECT_PATH}/{base_name}.txt"
 
     cv2_coords = []
     if os.path.isfile(coord_file):
@@ -170,7 +180,7 @@ def get_coords_file(self, query_components={}):
                     }
                 )
 
-    # cv2_coords2 = revert_labels(f"{TRAINING_PATH}/{base_name}.jpg", f"{TRAINING_PATH}/{base_name}.txt")
+    # cv2_coords2 = revert_labels(f"{TRAINING_PROJECT_PATH}/{base_name}.jpg", f"{TRAINING_PROJECT_PATH}/{base_name}.txt")
     # print(cv2_coords2)
     # print('--------------------cv2_coords')
     # print(cv2_coords)
@@ -181,28 +191,52 @@ def get_coords_file(self, query_components={}):
 
     return 
 
+def getSet_projects(project=''):
+    global TRAINING_PROJECT
+
+    if project != '':
+        TRAINING_PROJECT = project
+
+    dirs = os.listdir(TRAINING_PATH)
+    dirLists = []
+    for f in dirs:
+        if os.path.isdir(f"{TRAINING_PATH}/{f}"):
+            if TRAINING_PROJECT == "":
+                TRAINING_PROJECT = f
+            dirLists.append(f)
+    return dirLists
+
 # -----------------------------------------
 def render_html_homepage(query_components=None):
-    classesFile = f"{TRAINING_PATH}/classes.txt"
+    classesFile = f"{TRAINING_PROJECT_PATH}/classes.txt"
 
-
-    # jpg_files = [f for f in os.listdir(TRAINING_PATH) if f.endswith('.jpg')]
-    files = os.listdir(TRAINING_PATH)
+    # jpg_files = [f for f in os.listdir(TRAINING_PROJECT_PATH) if f.endswith('.jpg')]
+    files = os.listdir(TRAINING_PROJECT_PATH)
     files.sort()
     imageLists = {}
+
+    dirLists = getSet_projects()
+
     for f in files:
         if f.startswith( '.' ) or f == 'classes.txt':
             continue
+        elif os.path.isdir(f"{TRAINING_PROJECT_PATH}/{f}"): 
+            continue
+
         reFile = re.search(r'(.*)\.([a-z]{3,4})', f)
+
+        if reFile == None:
+            continue
+
         if reFile[1] not in imageLists:
             imageLists[reFile[1]] = {
                 'image_path': '',
                 'txt_path': '',
             }
         if reFile[2] == "txt":
-            imageLists[reFile[1]]['txt_path'] = f'{TRAINING_PATH}/{reFile[0]}'
+            imageLists[reFile[1]]['txt_path'] = f'{TRAINING_PROJECT_PATH}/{reFile[0]}'
         elif re.search("jpg|jpeg|png|gif|bmp|raw", reFile[2]):
-            imageLists[reFile[1]]['image_path'] = f'{TRAINING_PATH}/{reFile[0]}'
+            imageLists[reFile[1]]['image_path'] = f'{TRAINING_PROJECT_PATH}/{reFile[0]}'
 
 
     if os.path.isfile(classesFile):
@@ -210,11 +244,12 @@ def render_html_homepage(query_components=None):
             class_data = myfile.readlines()
             class_data = [s.rstrip() for s in class_data]
 
-    print(class_data)
     htmllist = Template(filename='html/_home.html')
     html = htmllist.render(
         imageLists=imageLists,
         class_data=class_data,
+        training_project=TRAINING_PROJECT,
+        dirLists=dirLists,
         )
     return html
 
@@ -223,6 +258,7 @@ def render_html_homepage(query_components=None):
 #-----------------------------------------
 # web header and handles
 #-----------------------------------------
+
 def send_img(self, filename_rel, mimetype):
     #Open the static file requested and send it
     f = open(filename_rel) 
@@ -249,7 +285,44 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
 
+
+    def deal_post_data(self):
+        fields = cgi.FieldStorage(
+            fp=self.rfile,
+            headers=self.headers,
+            environ={'REQUEST_METHOD':'POST'}
+            )
+
+        if 'project' in fields:
+            getSet_projects(fields['project'])
+        else:
+            getSet_projects()
+
+
+        base_dir = ""
+        try:
+            if isinstance(fields['file'], list):
+                for f in fields['file']:
+                    print(f"[UPLOADED] file: {f.filename}")
+                    self.save_file(f)
+            else:
+                f = fields['file']
+                # base_name = re.sub("\.[a-z]{2,4}", "", f.filename)
+                print(f"[UPLOADED] file: {f.filename}")
+                self.save_file(f, base_dir)
+            return "Success"
+        except IOError:
+            return "Can't create file to write, do you have permission to write?"
+
+    def save_file(self, file, base_dir):
+        print(f"[SAVING] file: {file.filename}")
+        outpath = os.path.join("", file.filename)
+        with open(outpath, 'wb') as fout:
+            shutil.copyfileobj(file.file, fout, 100000)
+
+
     def do_POST(self):
+        global TRAINING_PROJECT, TRAINING_PROJECT_PATH
         #------------ userauth
         if WEB_REQURE_AUTH == True:
             key = self.server.get_auth_key()
@@ -274,19 +347,34 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(bytes(json.dumps(response), 'utf-8'))
                 return None
 
+
+
         # self.send_response(301)
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
         length = int(self.headers['Content-Length'])
-        fields = parse_qs(self.rfile.read(length).decode('utf-8'))
         html_body = None
         
         if self.path.startswith('/set_coords_file'):
+            fields = parse_qs(self.rfile.read(length).decode('utf-8'))
+
+            if 'project' in fields:
+                getSet_projects(fields['project'])
+            else:
+                getSet_projects()
+
             html_body = set_coords_file(
                 query_components=fields,
                 )
+            return 
+        elif self.path.startswith('/upload_file'):
+            ###### option 0
+            html_body = self.deal_post_data()
+            self.wfile.write(bytes(html_body, "utf-8"))
+            return  
+
 
         htmlwrapper = Template(filename='html/wrapper.html')
         html = htmlwrapper.render(
@@ -296,6 +384,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         self.wfile.write(bytes(html, "utf-8"))
 
     def do_GET(self):
+        global TRAINING_PROJECT, TRAINING_PROJECT_PATH
 
         #------------ userauth
         if WEB_REQURE_AUTH == True:
@@ -326,6 +415,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         filename_rel = filename.strip('/')
         send_asset = False
 
+
         self.send_response(200)
         if filename[-4:] == '.html':
             self.send_header('Content-type', 'text/html')
@@ -354,7 +444,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         if self.path.endswith('favicon.ico'):
             self.end_headers()
             return
-        elif send_asset or self.path.startswith('/html/assets/')or self.path.startswith(f'/{TRAINING_PATH}/'):
+        elif send_asset or self.path.startswith('/html/assets/') or self.path.startswith(f'/{TRAINING_PATH}/'):
             self.end_headers()
             with open(filename_rel, 'rb') as fh:
                 html = fh.read()
@@ -365,6 +455,13 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             query_string = urlparse(self.path).query
             query_components = parse_qs(query_string)
 
+
+            if 'project' not in query_components:
+                getSet_projects()
+            else:
+                TRAINING_PROJECT = query_components['project'][0]
+            TRAINING_PROJECT_PATH = f"{TRAINING_PATH}/{TRAINING_PROJECT}"
+
             html_body = ""
             if self.path.startswith('/get_coords_file'):
                 get_coords_file(
@@ -374,7 +471,7 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 return
             else:
                 html_body = render_html_homepage(
-                    query_components=query_components
+                    query_components=query_components,
                     )
 
             self.end_headers()

@@ -26,9 +26,9 @@ logs in ./logs/web-server.log
   - UI to cycle through images
 
 
-### phase 4: [started]
+### phase 4: [DONE]
   - progress bar
-  - jump to next model image (pickup from where we left off) **DONE**
+  - jump to next model image (pickup from where we left off)
 
 ### phase 5: [Not started]
   - review UI

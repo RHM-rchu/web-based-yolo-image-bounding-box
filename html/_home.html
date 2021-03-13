@@ -5,7 +5,7 @@ selected = ""
 %>
 <div class="wrapper">
     <div class="middle">
-        <div class="container">
+        <div class="container" id="container" tabindex="1">
             <main class="content">
                 <label for="ice-cream-choice">Choose Class:</label>
                 <input type="text" name="selectClass" id="selectClass" placeholder="-------" list="checkName" onchange="this.blur();" required>
@@ -15,7 +15,7 @@ selected = ""
                     % endfor
                 </datalist><span class="canvasarea_name"></span>
                 <br>
-                <canvas id="canvasarea" widthx="600px" heightx="300px"></canvas>
+                <canvas id="canvasarea" widthx="600px" heightx="300px" tabindex="2"></canvas>
                 <br>
                 <!-- Canvas Info -->
                 <div>
@@ -30,7 +30,7 @@ selected = ""
             <div class="" id="message_display">
                 <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             </div>
-            <div id="image_list">
+            <div id="image_list" tabindex="0">
                 <ol>
                     % for img in imageLists:
                     <%
@@ -56,8 +56,10 @@ selected_image = ''
             </div>
             <div id="progress">
                 <progress data-label="" id="drawboxstatus" max="100" value="0"></progress>
+                Label Progress
             </div>
-            <div class="instruction">
+            <button type="button" class="collapsible">Instruction</button>
+            <div class="instruction contentNav" tabindex="3">
                 <ol>
                     <li>Select Class in Dropdown</li>
                     <li>Draw a box around object</li>
@@ -66,34 +68,36 @@ selected_image = ''
                     <li>Click Next or Prev or Save to commit your boxes</li>
                 </ol>
             </div>
-            <div id="projects">
-
+            <button type="button" class="collapsible">Change Projects</button>
+            <div id="projects" class="contentNav" tabindex="4">
                 <form method="GET" id="projects" name="projects">
-                <label>Select Project:</label><br>
-                <select name="project">
-            % for dir in dirLists:
-                % if dir == training_project:
-<%
+                    <!-- <label>Select Project:</label><br> -->
+                    <select id="project_select" name="project">
+                        % for dir in dirLists:
+                        % if dir == training_project:
+                        <%
 selected = " selected"
 %>
-                % else:
-<%
+                        % else:
+                        <%
 selected = ""
 %>
-                % endif
-                <option${selected}>${dir}</option>
-            % endfor
-                </select><input class="button_text" type="submit" name="change" value="Change Projects" />
+                        % endif
+                        <option ${selected}>${dir}</option>
+                            % endfor
+                    </select> <input class="button_text" type="submit" name="change" value="Change" />
                 </form>
+            </div>
+            <button type="button" class="collapsible">Upload Project</button>
+            <div id="uploads" class="contentNav" tabindex="5">
+                <div id="progress-upload">
+                    <progress data-label="0" id="upload-status" max="100" value="0"></progress>
+                </div>
+                Upload ZIP of images: <input id="img_files" name="file" type="file" />
             </div>
         </aside>
     </div>
     <footer class="footer">
-
-        <div id="progress-upload">
-            <progress data-label="0" id="upload-status" max="100" value="0"></progress>
-        </div>
-        Upload ZIP of images: <input id="img_files" name="file" type="file" />
     </footer>
 </div>
 <script src="html/assets/ui.js"></script>
@@ -106,6 +110,5 @@ $(document).ready(function() {
     drawRectangleOnCanvas.loadImage(image_path);
     show_next_prev_or_not();
 });
-
 </script>
 <script src="html/assets/drawRectangles.js"></script>

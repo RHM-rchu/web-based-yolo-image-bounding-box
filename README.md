@@ -31,8 +31,8 @@ logs in ./logs/web-server.log
   - jump to next model image (pickup from where we left off)
 
 ### phase 5: [IN PROGRESS]
-  - create multiple projects
-    - zip upload a project
+  - create multiple projects **DONE**
+    - zip upload a project **DONE**
   - zip model download
   - review UI
   - class manager

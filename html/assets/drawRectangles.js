@@ -12,6 +12,7 @@ classKey = 0;
 
 function drawImage() {}
 
+// Canvas Mouse Actions
 canvas.addEventListener("mousemove", function(e) {
     drawRectangleOnCanvas.handleMouseMove(e);
     drawRectangleOnCanvas.drawCrosshair(e);
@@ -26,32 +27,29 @@ canvas.addEventListener("mouseout", function(e) {
     drawRectangleOnCanvas.handleMouseOut(e);
     drawRectangleOnCanvas.removeCrosshair(e);
 }, false);
-
-
-$("#selectClass").bind("focus", function(e) {
-    // $(this).val('');
+// Block right click menu in canvas
+$('#canvasarea').contextmenu(function() {
+    return false;
+});
+// Mouse Actions
+$(document.body).on('click', '.rectanglelist', function(event) {
+    var sel_id = $(this).attr('id')
+    console.log(sel_id)
+    drawRectangleOnCanvas.removeRect(sel_id);
+}).on('mousemove', '.rectanglelist', function(event) {
+    var sel_id = $(this).attr('id');
+    // $(this).css("background-color", "red");
+    setTimeout(function(){  // don't need canvas to refresh so fast
+        drawRectangleOnCanvas.drawAll(sel_id);
+    }, 250); 
+}).on('focus', '#selectClass', function(event) {
     var sel = $("#selectClass")
     drawRectangleOnCanvas.selectClassFocus(sel);
-});
-$("#selectClass").bind("change", function(e) {
+}).on('change', '#selectClass', function(event) {
     var sel = $("#selectClass")
     drawRectangleOnCanvas.selectClassChange(sel);
     $("#selectClass").css("background-color", "");
     $("#selectClass").css("color", "");
-});
-// $("div").delegate(".rectanglelist", "click", function() {
-//     var sel_id = $(this).attr('id')
-//     console.log(sel_id)
-//     drawRectangleOnCanvas.removeRect(sel_id);
-// });
-$("div").delegate(".rectanglelist", "mouseover", function() {
-    var sel_id = $(this).attr('id');
-    $(this).css("background-color", "red");
-    drawRectangleOnCanvas.drawAll(sel_id);
-});
-// no rigthclick menu in canvas
-$('#canvasarea').contextmenu(function() {
-    return false;
 });
 
 
@@ -94,6 +92,7 @@ var drawRectangleOnCanvas = {
             // var x = e.pageX - recOffsetX;
             // var y = e.pageY - recOffsetY;
             drawRectangleOnCanvas.drawAll();
+            context2.lineWidth = 1;
             context2.beginPath();
             context2.moveTo(0, y);
             context2.lineTo(image_width, y);

@@ -23,6 +23,7 @@ TRAINING_PATH = "training"
 TRAINING_PROJECT = ""
 TRAINING_PROJECT_PATH = ""
 LOG_FILE_WEB = "logs/web-server.log"
+SKIPIFMATCHES = ['.zip', '__MAC', 'classes.txt']
 
 #--- log to file
 if 'LOG_FILE_WEB' in locals():
@@ -201,8 +202,14 @@ def getSet_projects(project=''):
     dirs = os.listdir(TRAINING_PATH)
     dirLists = []
     for f in dirs:
-        if os.path.isdir(f"{TRAINING_PATH}/{f}"):
-            if TRAINING_PROJECT == "":
+        if any(x in f for x in SKIPIFMATCHES) or f.startswith( '.' ):
+            continue
+        dir_path = f"{TRAINING_PATH}/{f}"
+        if os.path.isdir(f"{dir_path}"):
+            classes_path = f"{dir_path}/classes.txt"
+            if not os.path.isfile(classes_path):
+                shutil.copy(f"{TRAINING_PATH}/classes.txt", classes_path)
+            if not TRAINING_PROJECT:
                 TRAINING_PROJECT = f
             dirLists.append(f)
     return dirLists
@@ -212,6 +219,7 @@ def render_html_homepage(query_components=None):
     classesFile = f"{TRAINING_PROJECT_PATH}/classes.txt"
 
     # jpg_files = [f for f in os.listdir(TRAINING_PROJECT_PATH) if f.endswith('.jpg')]
+    print("2---" + TRAINING_PROJECT)
     files = os.listdir(TRAINING_PROJECT_PATH)
     files.sort()
     imageLists = {}
@@ -220,21 +228,20 @@ def render_html_homepage(query_components=None):
     dirLists = getSet_projects()
 
     for f in files:
-        if f.endswith( '.zip' ) or f.startswith( '__MAC' ) or f.startswith( '.' ) or f == 'classes.txt':
+        # if os.path.isdir(f"{TRAINING_PROJECT_PATH}/{f}"): 
+        #     continue
+        if any(x in f for x in SKIPIFMATCHES) or f.startswith( '.' ):
             continue
-        elif os.path.isdir(f"{TRAINING_PROJECT_PATH}/{f}"): 
+        elif not f.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif', '.txt')):
             continue
 
         reFile = re.search(r'(.*)\.([a-z]{3,4})', f)
-
-        if reFile == None:
-            continue
 
         if reFile[1] not in imageLists:
             imageLists[reFile[1]] = {
                 'image_path': '',
                 'txt_path': '',
-            }
+                }
         if reFile[2] == "txt":
             imageLists[reFile[1]]['txt_path'] = f'{TRAINING_PROJECT_PATH}/{reFile[0]}'
         elif re.search("jpg|jpeg|png|gif|bmp|raw", reFile[2]):
@@ -245,7 +252,6 @@ def render_html_homepage(query_components=None):
         with open (classesFile, "r") as myfile:
             class_data = myfile.readlines()
             class_data = [s.rstrip() for s in class_data]
-
 
     htmllist = Template(filename='html/_home.html')
     html = htmllist.render(
@@ -295,12 +301,10 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             headers=self.headers,
             environ={'REQUEST_METHOD':'POST'}
             )
-        base_dir = ""
 
         try:
             if isinstance(fields['file'], list):
                 for f in fields['file']:
-                    base_dir, extention = f.filename.rsplit('.', 1)
                     self.upload_prep_move(f)
             else:
                 f = fields['file']
@@ -308,36 +312,63 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
 
             return "Success"
         except IOError:
-            return "Can't create file to write, do you have permission to write?"
+            e = sys.exc_info()[0]
+            return f"Can't create file to write, do you have permission to write? - {e}"
 
     def upload_prep_move(self, f):
         base_dir, extention = f.filename.rsplit('.', 1)
-        base_dir_full = f"{TRAINING_PATH}/{base_dir}"
-        print("[1UPLOADED] file: {f.filename}")
+        base_dir_full = f"{TRAINING_PATH}"
+        print(f"[UPLOADED] file: {f.filename}")
         self.save_file(f, base_dir_full)
 
-        print(f"[MOOOO]--------{extention}")
+
+
+
+
+
         if extention == 'zip':
             zipfile_path = f"{base_dir_full}/{f.filename}"
+            z = zipfile.ZipFile(zipfile_path, 'r')
+            dirs = list(set([os.path.dirname(x) for x in z.namelist()]))
+
+            print(f"[1DIRS] {dirs}")
+
+            # original_zip = zipfile.ZipFile(zipfile_path, 'r')
+            # new_zip = zipfile.ZipFile(f"{base_dir_full}/new_{f.filename}", 'w')
+            # for item in original_zip.infolist():
+            #    buffer = original_zip.read(item.filename)
+            #    if not str(item.filename).startswith('__MACOSX/'):
+            #      new_zip.writestr(item, buffer)
+            #   new_zip.close()
+            # original_zip.close()
+            # os.remove(original_zip)
+            # zipfile_path = new_zip
+
+            regex = re.compile(r'(?!__MAC|^\.)')
+            dirs = list(filter(regex.match, dirs))
+
+            # dirs = [ x for x in dirs if "__MACOSX" not in x ]
+
+            if '' in dirs:
+                base_dir_full = f"{TRAINING_PATH}/{base_dir}"
+
+
             with zipfile.ZipFile(zipfile_path, 'r') as zip_ref:
                 zip_ref.extractall(base_dir_full + '/')
 
                 if os.path.isfile(zipfile_path):
                     os.remove(zipfile_path)
 
-                mac_path = f"{base_dir_full}/__MACOSX"
-                if  os.path.isdir(mac_path):
-                    shutil.rmtree(mac_path)
+                # find . -name ".DS_Store" -delete
+                # find . \( -name ".DS_Store" -o -name "__MACOSX" \) -delete -print 2>&1 
 
-                classes_path = f"{base_dir_full}/classes.txt"
-                if not os.path.isfile(classes_path):
-                    shutil.copy(f"{TRAINING_PATH}/classes.txt", f"{base_dir_full}/")
 
 
     def save_file(self, file, base_dir_full):
         print(f"[SAVING] file: {base_dir_full}/{file.filename}")
-        os.mkdir(f"{base_dir_full}")
-        outpath = os.path.join(f"{base_dir_full}", file.filename)
+        if not os.path.isdir(base_dir_full):
+            os.mkdir(base_dir_full)
+        outpath = os.path.join(base_dir_full, file.filename)
         with open(outpath, 'wb') as fout:
             shutil.copyfileobj(file.file, fout, 100000)
 
@@ -372,13 +403,13 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
 
         # self.send_response(301)
         self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
 
         length = int(self.headers['Content-Length'])
         html_body = None
         
         if self.path.startswith('/set_coords_file'):
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
             fields = parse_qs(self.rfile.read(length).decode('utf-8'))
 
             if 'project' in fields:
@@ -391,10 +422,20 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
                 )
             return 
         elif self.path.startswith('/upload_file'):
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
             ###### option 0
             html_body = self.upload_post_data()
             self.wfile.write(bytes(html_body, "utf-8"))
             return  
+
+        elif self.path.startswith('/get_coords_file'):
+            fields = parse_qs(self.rfile.read(length).decode('utf-8'))
+            get_coords_file(
+                query_components=fields,
+                self=self,
+                )
+            return
 
 
         htmlwrapper = Template(filename='html/wrapper.html')
@@ -434,7 +475,6 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
         path = self.path
         if '?' in self.path:
              path = self.path.split('?')[0]
-        print("-----" + path)
 
         filename =  path
         filename_rel = filename.strip('/')
@@ -470,7 +510,6 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             return
         elif send_asset or self.path.startswith('/html/assets/') or self.path.startswith(f'/{TRAINING_PATH}/'):
-            print("-----" + path)
             self.end_headers()
             with open(filename_rel, 'rb') as fh:
                 html = fh.read()
@@ -487,6 +526,10 @@ class theWebServer(http.server.BaseHTTPRequestHandler):
             else:
                 TRAINING_PROJECT = query_components['project'][0]
             TRAINING_PROJECT_PATH = f"{TRAINING_PATH}/{TRAINING_PROJECT}"
+            if not os.path.isdir(TRAINING_PROJECT_PATH):
+                TRAINING_PROJECT = None
+                getSet_projects()
+                TRAINING_PROJECT_PATH = f"{TRAINING_PATH}/{TRAINING_PROJECT}"
 
             html_body = ""
             if self.path.startswith('/get_coords_file'):

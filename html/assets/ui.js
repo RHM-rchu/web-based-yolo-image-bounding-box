@@ -27,15 +27,23 @@ $(".imagelist").on('click', function(event) {
 
 });
 $('input#button_save').on('click', function(event) {
-    var cur_element = $('#image_list ol li.active');
-    var cur_image = cur_element.text();
-    drawRectangleOnCanvas.aj_coord_save(cur_image, cur_element, 1);
-    show_next_prev_or_not();
-
+    save_current_img_coords();
 });
 $('div.next_img').on('click', function(event) {
+    show_next_image();
+});
+$('div .prev_img').on('click', function(event) {
+    show_prev_image();
+});
+
+
+function show_next_image() {
     var cur_element = $('#image_list ol li.active');
     var new_image = cur_element.closest('li').next('li').text();
+    if(new_image == "") {
+        console.log('No more images')
+        return 
+    }
     var cur_image = cur_element.text();
     drawRectangleOnCanvas.aj_coord_save(cur_image, cur_element);
 
@@ -46,11 +54,14 @@ $('div.next_img').on('click', function(event) {
     nextImg.addClass('active');
     show_next_prev_or_not();
     drawRectangleOnCanvas.loadImage(new_image);
-
-});
-$('div .prev_img').on('click', function(event) {
+}
+function show_prev_image() {
     var cur_element = $('#image_list ol li.active');
     var new_image = cur_element.closest('li').prev('li').text();
+    if(new_image == "") {
+        console.log('No more images')
+        return 
+    }
     var cur_image = cur_element.text();
     drawRectangleOnCanvas.aj_coord_save(cur_image, cur_element);
 
@@ -61,8 +72,13 @@ $('div .prev_img').on('click', function(event) {
     prevImg.addClass('active');
     show_next_prev_or_not();
     drawRectangleOnCanvas.loadImage(new_image);
-});
-
+}
+function save_current_img_coords() {
+    var cur_element = $('#image_list ol li.active');
+    var cur_image = cur_element.text();
+    drawRectangleOnCanvas.aj_coord_save(cur_image, cur_element, 1);
+    show_next_prev_or_not();
+}
 //---- show/hide - next prev
 function show_next_prev_or_not() {
 
@@ -98,4 +114,42 @@ function show_next_prev_or_not() {
     // $('#drawboxstatus').text(cmplt_images + " of " + ttl_images );
     // $('progress#drawboxstatus').before(cmplt_images + " of " + ttl_images + "<br>");
     // (cmplt_images + " of " + ttl_images + "<br>").insertbefore('progress#drawboxstatus')
+}
+
+
+
+
+//---- Keyboard controls
+$('#container').on('keydown', function(e) {
+
+    switch (e.keyCode) {
+        case 68: //'d' = advance image
+        case 39: //arrow '->' 
+            show_next_image();
+            break;
+        case 65: //'a' = previous image
+        case 37: //'<-' arrow
+            show_prev_image();
+            break;
+        case 83: //'s' = save
+            save_current_img_coords();
+            break;
+        default:
+            console.log("key: " + e.keyCode);
+    }
+});
+
+//---- Left nav toggle show/hide
+var coll = document.getElementsByClassName("collapsible");
+var i;
+for (i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {
+            content.style.display = "none";
+        } else {
+            content.style.display = "block";
+        }
+    });
 }

@@ -49,12 +49,42 @@ body {
 
 
 /*--------------------------------*/
+.collapsible {
+    background-color: #777;
+    color: white;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    border-bottom: double;
+}
+
+.active,
+.collapsible:hover {
+    background-color: #555;
+}
+
+.contentNav {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+/*--------------------------------*/
 input#selectClass {
-    --active: #275EFE;
-    --border: #BBC1E1;
-    border: 1px solid var(--bc, var(--border));
-    transition: box-shadow .2s;
-    font-size: 24px;
+    border: 0 none;
+    color: #4a4a4a;
+    background: transparent;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 2px 10px 2px;
+    background: #CECECE;
+    overflow: hidden;
+    box-shadow: 1px 1px 11px #330033;
     margin: 5px;
 }
 
@@ -83,21 +113,25 @@ li.imagelist {
 
 li.imagelist:hover {
     cursor: pointer;
-    background-color: #ffff00;
+    background-color: #ffff006b;
 }
 
 li.hasCoords {
-    color: #666666;
+    color: #018400d4;
 }
 
 li.needsCoords {
     font-weight: bold;
-    color: green;
+    color: #038602;
 }
 
-li.active,
-.canvasarea_name {
+li.active {
     background-color: #ffff00;
+}
+
+.canvasarea_name {
+    background-color: #ffff006b;
+    padding: 10px
 }
 
 #checkName {
@@ -187,12 +221,13 @@ div.prev_img {
 
 /* Progress bar draw complete
 -----------------------------------------------------------------------------*/
-div#progress, div#progress-upload {
+div#progress {
     width: 100%;
     position: relative;
-    margin: 70px auto;
+    margin: 50px auto;
     text-align: center;
 }
+
 progress#upload-status {
     display: none;
 }
@@ -248,8 +283,28 @@ progress::-webkit-progress-value {
 
 div.instruction {
     position: relative;
-    margin-top: 70px;
     font-size: .6em;
+}
+
+
+div#projects,
+div#uploads {
+    position: relative;
+    font-size: 1em;
+    /*border: 1px solid black;*/
+    padding: 10px;
+}
+
+select#project_select {
+    border: 0 none;
+    color: #4a4a4a;
+    background: transparent;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 2px 10px 2px;
+    background: #CECECE;
+    overflow: hidden;
+    box-shadow: 1px 1px 11px #330033;
 }
 
 /* Footer
@@ -306,7 +361,8 @@ div.instruction {
 
 /* General
 -----------------------------------------------------------------------------*/
-input.button_text {
+input.button_text,
+#img_files {
     box-shadow: inset 0px -3px 7px 0px #29bbff;
     background: linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
     background-color: #2dabf9;
@@ -321,6 +377,7 @@ input.button_text {
     text-decoration: none;
     text-shadow: 0px 1px 0px #263666;
 }
+
 
 input.button_text:hover {
     background: linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);

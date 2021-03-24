@@ -26,27 +26,14 @@ selected = ""
                 </div>
             </main>
         </div>
-        <aside class="left-sidebar">
+        <aside class="left-sidebar" id="left-sidebar" tabindex="6">
             <div class="" id="message_display">
                 <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             </div>
             <div id="image_list" tabindex="0">
                 <ol>
                     % for img in imageLists:
-                    <%
-last_image = imageLists[img]['image_path']
-%>
-                    % if imageLists[img]['txt_path'] == "" and path_image == "":
-                    <%
-path_image = imageLists[img]['image_path']
-selected_image = ' active'
-%>
-                    % else:
-                    <%
-selected_image = ''
-%>
-                    % endif
-                    <li class="imagelist${selected_image}${' hasCoords'  if imageLists[img]['txt_path'] else ' needsCoords'}">${imageLists[img]['image_path']}</li>
+                    <li class="imagelist${' hasCoords'  if imageLists[img]['txt_path'] else ' needsCoords'}">${imageLists[img]['image_path']}</li>
                     % endfor
                 </ol>
             </div>
@@ -103,10 +90,17 @@ selected = ""
 <script src="html/assets/ui.js"></script>
 <script src="html/assets/upload.js"></script>
 <script type="text/javascript">
-image_path = '${path_image  if path_image else last_image}'; //Load Image ;
-project = '${training_project}'
+var image_path = '${path_image  if path_image else last_image}'; //Load Image ;
+var project = '${training_project}'
 $(document).ready(function() {
     $('#message_display').hide();
+
+    var leftOffAt = $('li.hasCoords:last');
+    leftOffAt[0].scrollIntoView();
+    $('.active').removeClass('active');
+    leftOffAt.addClass('active');
+    image_path = leftOffAt.addClass('active').text();
+
     drawRectangleOnCanvas.loadImage(image_path);
     show_next_prev_or_not();
 });

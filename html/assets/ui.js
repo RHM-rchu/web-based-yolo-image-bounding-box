@@ -91,7 +91,7 @@ function show_next_prev_or_not() {
 
     if(cur_element.text() === "") {
         var curnImgNum = $('#image_list ol li').length;
-        $( "#image_list ol li:nth-child(" + curnImgNum +")" ).addClass('active')
+        $( "#image_list ol li:nth-child(" + curnImgNum +")" ).addClass('active');
     }
 
     if (prevImgNum >= 0 || curnImgNum > 0) {
@@ -120,22 +120,31 @@ function show_next_prev_or_not() {
 
 
 //---- Keyboard controls
-$('#container').on('keydown', function(e) {
-
-    switch (e.keyCode) {
-        case 68: //'d' = advance image
-        case 39: //arrow '->' 
-            show_next_image();
-            break;
-        case 65: //'a' = previous image
-        case 37: //'<-' arrow
-            show_prev_image();
-            break;
-        case 83: //'s' = save
-            save_current_img_coords();
-            break;
-        default:
-            console.log("key: " + e.keyCode);
+// $('#container, #left-sidebar').on('keydown', function(e) {
+$('body').on('keydown', function(e) {
+    if ( (e.ctrlKey && e.keyCode == 68)         // CTRL + 'd' = advance image
+        || e.keyCode == 39 ) {                  //arrow '->' 
+        e.preventDefault();
+        show_next_image();
+        $('li.active')[0].scrollIntoView();
+        $('#selectClass')[0].focus();
+    } else if ( (e.ctrlKey && e.keyCode == 65)  // CTRL + 'a' = previous image
+        || e.keyCode == 37 )  {                 //'<-' arrow
+        e.preventDefault();
+        show_prev_image();
+        $('li.active')[0].scrollIntoView();
+        $('#selectClass')[0].focus();
+    } else if ( (e.ctrlKey && e.keyCode == 83)  // CTRL + 's' = save
+        || e.keyCode == 40 ) {                  // down array
+        e.preventDefault();
+        save_current_img_coords();
+        $('#selectClass')[0].focus();
+    }  else if ( (e.ctrlKey && e.keyCode == 69) // CTRL + 'e' = focus to class chooser
+        || e.keyCode == 38 ) {                  // up array
+        e.preventDefault();
+        $('#selectClass')[0].focus();
+    } else {
+        console.log("key: " + e.keyCode + " ctrKey: " + e.ctrlKey);
     }
 });
 
